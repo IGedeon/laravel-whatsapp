@@ -1,0 +1,56 @@
+{
+  "name": "igedeon/laravel-whatsapp",
+  "description": "Librería Laravel para enviar y recibir mensajes WhatsApp Cloud API (multi-número)",
+  "type": "library",
+  "license": "MIT",
+  "version": "1.0.0",
+  "authors": [
+    {"name": "Carlos Trujillo", "email": "ctrujillo@sideso.com.co"}
+  ],
+  "require": {
+    "php": "^8.2",
+    "illuminate/support": "^12.28.1",
+    "illuminate/http": "^12.28.1",
+    "illuminate/database": "^12.28.1",
+    "guzzlehttp/guzzle": "^7.8"
+  },
+  "require-dev": {
+    "laravel/pint": "1.20.0",
+    "orchestra/testbench": "^10.6.0",
+    "phpstan/phpstan": "^2.1.27",
+    "rector/rector": "^2.2.4",
+    "pestphp/pest": "^3.8"
+  },
+  "autoload": {
+    "psr-4": {
+      "LaravelWhatsApp\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "LaravelWhatsApp\\Tests\\": "tests/",
+      "Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "LaravelWhatsApp\\WhatsAppServiceProvider"
+      ],
+      "aliases": {
+        "WhatsApp": "LaravelWhatsApp\\Facades\\WhatsApp"
+      }
+    }
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true,
+  "config": {
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
+  },
+  "scripts": {
+    "test": "pest",
+    "test:coverage": "pest --coverage"
+  }
+}

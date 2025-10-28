@@ -1,0 +1,41 @@
+{
+    "object": "whatsapp_business_account",
+    "entry": [
+        {
+            "id": "1614027675951472",
+            "changes": [
+                {
+                    "value": {
+                        "messaging_product": "whatsapp",
+                        "metadata": {
+                            "display_phone_number": "573000000000",
+                            "phone_number_id": "688072457719415"
+                        },
+                        "contacts": [
+                            {
+                                "profile": {
+                                "name": "Carlos Trujillo"
+                                },
+                                "wa_id": "573000000001"
+                            }
+                        ],
+                        "messages": [
+                            {
+                                "from": "573000000001",
+                                "id": "wamid.HBgMNTczMDA3ODIwNzYyFQIAEhggQUNDNjFENDhENTY1QTRERjZENTNCNzhDNjdFOTEyRkYA",
+                                "timestamp": "1761686125",
+                                "type": "image",
+                                "image": {
+                                    "mime_type": "image/jpeg",
+                                    "sha256": "QWd0pXCfjFQR9r+n6xbo4z1pGS/Ccwo6a80IWxlYzyQ=",
+                                    "id": "MEDIA_ID_EXAMPLE"
+                                }
+                            }
+                        ]
+                    },
+                    "field": "messages"
+                }
+            ]
+        }
+    ]
+}
