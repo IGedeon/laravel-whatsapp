@@ -3,7 +3,6 @@
   "description": "Librería Laravel para enviar y recibir mensajes WhatsApp Cloud API (multi-número)",
   "type": "library",
   "license": "MIT",
-  "version": "1.0.0",
   "authors": [
     {"name": "Carlos Trujillo", "email": "ctrujillo@sideso.com.co"}
   ],
