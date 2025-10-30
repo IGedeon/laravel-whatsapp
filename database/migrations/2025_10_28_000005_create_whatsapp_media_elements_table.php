@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         Schema::create('whatsapp_media_elements', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('message_id')->constrained('whatsapp_messages')->cascadeOnDelete();
+            $table->foreignId('message_id')->nullable()->constrained('whatsapp_messages')->cascadeOnDelete();
             $table->string('wa_media_id')->nullable()->index();
             $table->string('url')->nullable();
             $table->string('mime_type')->nullable();
@@ -18,6 +18,7 @@ return new class extends Migration {
             $table->string('filename')->nullable();
             $table->foreignId('api_phone_number_id')->constrained('whatsapp_api_phone_numbers')->cascadeOnDelete();
             $table->timestamp('downloaded_at')->nullable();
+            $table->timestamp('uploaded_at')->nullable();
             $table->timestamps();
         });
     }
