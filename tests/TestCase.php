@@ -45,12 +45,6 @@ abstract class TestCase extends TestbenchTestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
-		// Prevent real HTTP requests: return minimal success payload similar to WhatsApp API
-		\Illuminate\Support\Facades\Http::fake([
-			'*' => \Illuminate\Support\Facades\Http::response([
-				'messages' => [ ['id' => 'fake-sent-id'] ],
-			], 200),
-		]);
 
 		// Ejecutar migraciones del paquete
 		$this->loadMigrationsFrom(__DIR__.'/../database/migrations');

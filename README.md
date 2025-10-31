@@ -70,6 +70,7 @@ php artisan whatsapp:install --no-migrations
 | `WHATSAPP_MEDIA_DOWNLOAD_QUEUE` | No | `default` | Nombre de la cola donde se encola el Job `DownloadMedia`. |
 | `WHATSAPP_MARK_AS_READ_QUEUE` | No | `default` | Nombre de la cola donde se encola el Job `MarkAsRead`. |
 | `WHATSAPP_DEFAULT_API_PHONE_NUMBER_ID` | Opcional | `null` | ID del número de teléfono Business (phone_number_id) que se usará por defecto al crear mensajes si no se pasa explícitamente un `ApiPhoneNumber`. |
+| `WHATSAPP_DEFAULT_DISPLAY_PHONE_NUMBER` | Opcional | `null` | Número de teléfono para mostrar por defecto (ej: +1234567890). |
 
 Notas:
 
@@ -82,6 +83,7 @@ Ejemplo `.env` mínimo:
 ```dotenv
 WHATSAPP_ACCESS_TOKEN=EAABxxxxxxxxxxxxxxxxxxxxx
 WHATSAPP_DEFAULT_API_PHONE_NUMBER_ID=123456789012345
+WHATSAPP_DEFAULT_DISPLAY_PHONE_NUMBER=+1234567890
 WHATSAPP_GRAPH_VERSION=v21.0
 WHATSAPP_DOWNLOAD_DISK=public
 ```
@@ -221,39 +223,32 @@ Tras enviarse, se guarda `wa_message_id` en la columna correspondiente y el regi
 
 ## Ejemplo: Subir media y enviar una imagen
 
-Para enviar una imagen primero debes subirla usando un `MediaElement` asociado al número remitente.
+Para enviar una imagen primero debes subirla usando un `MediaElement`, después usar el `media_id` para crear el mensaje:
 
 ```php
 use LaravelWhatsApp\Models\Contact;
 use LaravelWhatsApp\Models\ApiPhoneNumber;
-use LaravelWhatsApp\Models\WhatsAppMessage;
 use LaravelWhatsApp\Models\MediaElement;
-use LaravelWhatsApp\Enums\MessageType;
+use LaravelWhatsApp\Models\MessageTypes\Image;
 
 $contact = Contact::firstOrCreate(['wa_id' => '5215512345678']);
 $from = ApiPhoneNumber::where('phone_number_id', env('WHATSAPP_DEFAULT_API_PHONE_NUMBER_ID'))->first();
 
-// Crear registro de media (vacío inicial)
+// Crear elemento de media y subir archivo
 $media = MediaElement::create([
    'api_phone_number_id' => $from->id,
 ]);
 
-// Subir el archivo local (ruta absoluta o relativa dentro del proyecto)
 $uploadResponse = $media->upload(storage_path('app/example-image.jpg'));
 
-// El método upload actualiza $media->wa_media_id
-
-// Construir y enviar mensaje de imagen usando el ID devuelto
-$imageMessage = new WhatsAppMessage();
-$imageMessage->initMessage(
-	type: MessageType::IMAGE,
-	to: $contact,
-	from: $from,
-	contentProps: [
-		'id' => $media->wa_media_id, // Cloud API espera { image: { id: '...' } }
-		// Opcional: 'caption' => 'Foto de producto'
-	]
+// Crear y enviar mensaje de imagen usando el media ID
+$imageMessage = Image::createFromId(
+    to: $contact,
+    from: $from, 
+    mediaId: $media->wa_media_id,
+    caption: 'Foto de producto' // Opcional
 );
+
 $imageMessage->send();
 ```
 

@@ -38,6 +38,17 @@ it('can recieve a image message via webhook', function () {
     $payload = json_decode(file_get_contents($stubPath), true);
     $this->assertIsArray($payload, 'Payload JSON invalid');
 
+    // Mock HTTP calls for media info API
+    Http::fake([
+        'graph.facebook.com/*' => Http::response([
+            'url' => 'https://example.com/media/test.jpg',
+            'mime_type' => 'image/jpeg',
+            'sha256' => 'fake_hash',
+            'file_size' => 1024
+        ], 200),
+        'example.com/*' => Http::response('fake image data', 200),
+    ]);
+
     //Disable middleware to avoid signature verification issues during testing
     $this->withoutMiddleware(VerifyMetaSignature::class);
     $response = $this->postJson('/whatsapp/webhook', $payload);
