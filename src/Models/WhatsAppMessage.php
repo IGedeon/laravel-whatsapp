@@ -179,7 +179,7 @@ class WhatsAppMessage extends Model
         return $service->markAsRead($this, $typingIndicator);
     }
 
-    public function mediable(): MorphOne
+    public function media(): MorphOne
     {
         return $this->morphOne(MediaElement::class, 'mediable');
     }

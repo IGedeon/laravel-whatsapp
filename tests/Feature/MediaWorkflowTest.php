@@ -47,7 +47,7 @@ it('can create a complete media workflow from message to upload', function () {
     $message->save();
 
     // Create media element through polymorphic relationship
-    $mediaElement = $message->mediable()->create([
+    $mediaElement = $message->media()->create([
         'api_phone_number_id' => $apiPhoneNumber->id,
         'wa_media_id' => 'incoming_media_id',
         'mime_type' => MimeType::IMAGE_JPEG,
@@ -59,8 +59,8 @@ it('can create a complete media workflow from message to upload', function () {
         ->and($mediaElement->wa_media_id)->toBe('incoming_media_id');
 
     // Test the relationship works both ways
-    expect($message->mediable)->toBeInstanceOf(MediaElement::class)
-        ->and($message->mediable->id)->toBe($mediaElement->id);
+    expect($message->media)->toBeInstanceOf(MediaElement::class)
+        ->and($message->media->id)->toBe($mediaElement->id);
 
     expect($mediaElement->mediable)->toBeInstanceOf(WhatsAppMessage::class)
         ->and($mediaElement->mediable->id)->toBe($message->id);
@@ -130,7 +130,7 @@ it('handles webhook creation of media elements correctly', function () {
     $message->save();
 
     // Simulate the webhook controller creating media element
-    $media = $message->mediable()->create([
+    $media = $message->media()->create([
         'wa_media_id' => $message->getContentProperty('image')['id'],
         'api_phone_number_id' => $apiPhoneNumber->id,
         'url' => null, // Will be populated later
@@ -142,7 +142,7 @@ it('handles webhook creation of media elements correctly', function () {
 
     expect($media->wa_media_id)->toBe('webhook_media_id')
         ->and($media->mediable)->toBeInstanceOf(WhatsAppMessage::class)
-        ->and($message->fresh()->mediable)->toBeInstanceOf(MediaElement::class);
+        ->and($message->fresh()->media)->toBeInstanceOf(MediaElement::class);
 });
 
 it('can generate base64 content URLs for downloaded media', function () {

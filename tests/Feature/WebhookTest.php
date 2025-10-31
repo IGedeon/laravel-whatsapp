@@ -1,12 +1,14 @@
 <?php
 
 use Illuminate\Http\Client\Request;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Http;;
 use LaravelWhatsApp\Enums\MessageStatus;
 use LaravelWhatsApp\Models\ApiPhoneNumber;
 use LaravelWhatsApp\Http\Middleware\VerifyMetaSignature;
 
 it('can receive a text message via webhook', function () {
+    Event::fake();
     
     $stubPath = realpath(__DIR__ . '/../../stubs/webhook_text_message.json');
     $this->assertNotFalse($stubPath, 'Stub file not found');
@@ -29,10 +31,15 @@ it('can receive a text message via webhook', function () {
     $stored = \LaravelWhatsApp\Models\WhatsAppMessage::where('wa_message_id', 'wamid.HBgMNTczMDA3ODIwNzYyFQIAEhgWM0VCMDBCMDUwMEI5M0E1MjE1RDEyOAA=')->first();
     expect($stored)->not->toBeNull();
     expect($stored->getContentProperty('body'))->toBe('Hola Mundo');
+
+    Event::assertDispatched(\LaravelWhatsApp\Events\WhatsAppMessageReceived::class, function ($event) use ($stored) {
+        return $event->message->id === $stored->id;
+    });
 });
 
 it('can recieve a image message via webhook', function () {
-    
+    Event::fake();
+
     $stubPath = realpath(__DIR__ . '/../../stubs/webhook_image_message.json');
     $this->assertNotFalse($stubPath, 'Stub file not found');
     $payload = json_decode(file_get_contents($stubPath), true);
@@ -70,6 +77,14 @@ it('can recieve a image message via webhook', function () {
         'wa_media_id' => 'MEDIA_ID_EXAMPLE',
         'mime_type' => 'image/jpeg',
     ]);
+
+    //verificar evento disparado WhatsAppMessageReceived
+    Event::assertDispatched(\LaravelWhatsApp\Events\WhatsAppMessageReceived::class, function ($event) use ($stored) {
+        return $event->message->id === $stored->id &&
+               $event->media !== null &&
+               $event->media->wa_media_id === 'MEDIA_ID_EXAMPLE' &&
+               $event->mediaDownloaded === true;
+    });
 });
 
 

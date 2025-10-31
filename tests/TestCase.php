@@ -45,10 +45,5 @@ abstract class TestCase extends TestbenchTestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
-
-		// Ejecutar migraciones del paquete
-		$this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-		// También desde la carpeta principal del paquete (por si ubicación distinta)
-		$this->loadMigrationsFrom(realpath(__DIR__.'/../database/migrations'));
 	}
 }

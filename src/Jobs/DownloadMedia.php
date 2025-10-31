@@ -31,9 +31,9 @@ class DownloadMedia implements ShouldQueue
         $this->whatsAppMedia->download();
 
         // Disparar evento indicando que el mensaje ya tiene la media descargada
-        if($this->whatsAppMedia->message){
+        if($this->whatsAppMedia->mediable){
             WhatsAppMessageReceived::dispatch(
-                $this->whatsAppMedia->message,
+                $this->whatsAppMedia->mediable,
                 $this->whatsAppMedia,
                 true
             );

@@ -52,7 +52,7 @@ it('has mediable relationship using morphOne', function () {
     // Test that the method exists and is a relationship
     $msg = new \LaravelWhatsApp\Models\WhatsAppMessage();
     
-    expect(method_exists($msg, 'mediable'))->toBeTrue();
+    expect(method_exists($msg, 'media'))->toBeTrue();
 });
 
 it('can access content properties correctly', function () {

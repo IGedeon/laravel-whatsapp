@@ -72,7 +72,7 @@ class WebhookController extends Controller
         $contact->last_messages_received_at = $message->timestamp;
 
         if($message->type->isMedia()){
-            $media = $message->mediable()->create([
+            $media = $message->media()->create([
                 'wa_media_id' => $message->getContentProperty('id'),
                 'api_phone_number_id' => $phoneNumber->id,
                 'url' => null, //Pendiente de obtener
