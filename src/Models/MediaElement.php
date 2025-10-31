@@ -71,6 +71,8 @@ class MediaElement extends Model
             'filename' => $this->filename ?? (uniqid() . '.' . $mimeType->fileExtension()),
         ]);
 
+        $this->fresh();
+
         return $this;
     }
 
@@ -85,34 +87,35 @@ class MediaElement extends Model
             $this->getInfo();
         }
 
-        $diskName = config('whatsapp.download_disk', 'local');
-        
-        // Get the full path using the download_disk
-        $downloadDisk = Storage::disk($diskName);
-        $destinationPath = $downloadDisk->path($this->filename);
-
-        // Ensure the directory exists
-        $downloadDisk->makeDirectory(dirname($this->filename));
-
         if ($this->url) {
             $downloadResponse = Http::withToken(config('whatsapp.access_token'))
                 ->get($this->url);
 
-            if ($downloadResponse->ok()) {
-                Storage::disk($diskName)->put($this->filename, $downloadResponse->body());
-            } else {
+            if(!$downloadResponse->ok()){
                 Log::warning('WhatsApp Media Download failed', [
                     'status' => $downloadResponse->status(),
                     'media_id' => $this->wa_media_id,
                 ]);
+
+                return null;
             }
+
+            $diskName = config('whatsapp.download_disk', 'local');
+
+            $upload = Storage::disk($diskName)->put($this->filename, $downloadResponse->body());
+
+            if(!$upload){
+                return null;
+            }
+
+            $this->update([
+                'downloaded_at' => now(),
+            ]);
+
+            return $this->filename;
         }
 
-        $this->update([
-            'downloaded_at' => now(),
-        ]);
-
-        return $destinationPath;
+        return null;
     }
 
     public function upload(string $filePath)
