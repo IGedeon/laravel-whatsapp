@@ -14,14 +14,15 @@ class MediaElement extends Model
     protected $table = 'whatsapp_media_elements';
 
     protected $fillable = [
-        'message_id',
+        'api_phone_number_id',
+        'mediable_type',
+        'mediable_id',
         'wa_media_id',
         'url',
         'mime_type',
         'sha256',
         'file_size',
         'filename',
-        'api_phone_number_id',
         'downloaded_at',
         'uploaded_at',
     ];
@@ -37,9 +38,9 @@ class MediaElement extends Model
         return $this->belongsTo(ApiPhoneNumber::class, 'api_phone_number_id');
     }
 
-    public function message()
+    public function mediable()
     {
-        return $this->belongsTo(WhatsAppMessage::class, 'message_id');
+        return $this->morphTo('mediable');
     }
 
     public function getInfo()
