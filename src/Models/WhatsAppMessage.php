@@ -5,6 +5,7 @@ namespace LaravelWhatsApp\Models;
 use Illuminate\Support\Arr;
 use LaravelWhatsApp\Enums\MessageType;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use LaravelWhatsApp\Enums\MessageDirection;
 use LaravelWhatsApp\Models\MessageTypes\Text;
 use LaravelWhatsApp\Models\MessageTypes\Image;
@@ -69,27 +70,27 @@ class WhatsAppMessage extends Model
      */
     public function initMessage(
         MessageType $type,
-        MessageDirection $direction = null,
-        Contact $to = null,
-        ApiPhoneNumber $from = null,
+        ?MessageDirection $direction = null,
+        ?Contact $to = null,
+        ?ApiPhoneNumber $from = null,
         array $contentProps = []
     ): void {
-    $this->type = $type;
-    $this->direction = $direction ?? MessageDirection::OUTGOING;
+        $this->type = $type;
+        $this->direction = $direction ?? MessageDirection::OUTGOING;
 
-        if(!$to){
+        if (!$to) {
             throw new \InvalidArgumentException("Contact 'to' must be provided.");
         }
-    $this->contact_id = $to->id;
-        
+        $this->contact_id = $to->id;
+
         if (!$from) {
             $from = ApiPhoneNumber::where('phone_number_id', config('whatsapp.default_api_phone_number_id'))->first();
             if (!$from) {
                 throw new \InvalidArgumentException("ApiPhoneNumber could not be determined. Please provide the 'from' parameter or set a default_api_phone_number_id in the config.");
             }
         }
-    $this->api_phone_number_id = $from->id;
-        
+        $this->api_phone_number_id = $from->id;
+
         foreach ($contentProps as $key => $value) {
             $this->setContentProperty($key, $value);
         }
@@ -107,7 +108,7 @@ class WhatsAppMessage extends Model
      * Helper for Attribute getter
      */
     // Renamed from contentAttribute to makeContentAttribute to avoid Laravel treating it as a mutator/accessor for 'content'
-    public static function makeContentAttribute(string $key = null, $default = null): \Illuminate\Database\Eloquent\Casts\Attribute
+    public static function makeContentAttribute(?string $key = null, $default = null): \Illuminate\Database\Eloquent\Casts\Attribute
     {
         // If Laravel introspects mutators and invokes without arguments, return a trivial attribute
         if ($key === null) {
@@ -139,10 +140,10 @@ class WhatsAppMessage extends Model
     public function getContentProperty($key)
     {
         $content = $this->content;
-        if(!$content){
+        if (!$content) {
             return null;
         }
-        if(is_string($content)){
+        if (is_string($content)) {
             $content = json_decode($content, true);
         }
         return Arr::get($content, $key);
@@ -161,7 +162,7 @@ class WhatsAppMessage extends Model
 
     public function send()
     {
-        if($this->direction !== MessageDirection::OUTGOING){
+        if ($this->direction !== MessageDirection::OUTGOING) {
             throw new \Exception('Only outgoing messages can be sent.');
         }
 
@@ -178,9 +179,9 @@ class WhatsAppMessage extends Model
         return $service->markAsRead($this, $typingIndicator);
     }
 
-    public function media(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function mediable(): MorphOne
     {
-        return $this->hasOne(MediaElement::class, 'message_id', 'id');
+        return $this->morphOne(MediaElement::class, 'mediable');
     }
 
     //Get Text or Image class based on type

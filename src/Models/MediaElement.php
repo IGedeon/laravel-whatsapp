@@ -7,25 +7,30 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use LaravelWhatsApp\Enums\MimeType;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class MediaElement extends Model
 {
     protected $table = 'whatsapp_media_elements';
 
     protected $fillable = [
-        'message_id',
+        'api_phone_number_id',
+        'mediable_type',
+        'mediable_id',
         'wa_media_id',
         'url',
         'mime_type',
         'sha256',
         'file_size',
         'filename',
-        'api_phone_number_id',
         'downloaded_at',
+        'uploaded_at',
     ];
 
     protected $casts = [
         'mime_type' => MimeType::class,
+        'downloaded_at' => 'datetime',
+        'uploaded_at' => 'datetime'
     ];
 
     public function apiPhoneNumber()
@@ -33,12 +38,13 @@ class MediaElement extends Model
         return $this->belongsTo(ApiPhoneNumber::class, 'api_phone_number_id');
     }
 
-    public function message()
+    public function mediable()
     {
-        return $this->belongsTo(WhatsAppMessage::class, 'message_id');
+        return $this->morphTo('mediable');
     }
 
-    public function getInfo(){
+    public function getInfo()
+    {
         $url = config('whatsapp.base_url') . '/' . config('whatsapp.graph_version') . '/' . $this->wa_media_id . '?phone_number_id=' . $this->apiPhoneNumber->phone_number_id;
         $token = config('whatsapp.access_token');
 
@@ -79,11 +85,10 @@ class MediaElement extends Model
             $this->getInfo();
         }
 
-    $diskName = config('whatsapp.download_disk', 'local');
-        
+        $diskName = config('whatsapp.download_disk', 'local');
         
         // Get the full path using the download_disk
-        $downloadDisk = \Illuminate\Support\Facades\Storage::disk($diskName);
+        $downloadDisk = Storage::disk($diskName);
         $destinationPath = $downloadDisk->path($this->filename);
 
         // Ensure the directory exists
@@ -94,7 +99,7 @@ class MediaElement extends Model
                 ->get($this->url);
 
             if ($downloadResponse->ok()) {
-                \Illuminate\Support\Facades\Storage::disk($diskName)->put($this->filename, $downloadResponse->body());
+                Storage::disk($diskName)->put($this->filename, $downloadResponse->body());
             } else {
                 Log::warning('WhatsApp Media Download failed', [
                     'status' => $downloadResponse->status(),
@@ -112,17 +117,31 @@ class MediaElement extends Model
 
     public function upload(string $filePath)
     {
-        
-    $url = config('whatsapp.base_url') . '/' . config('whatsapp.graph_version') . '/' . $this->apiPhoneNumber->phone_number_id . '/media';
-    $token = config('whatsapp.access_token');
+        if($this->wa_media_id){
+            return ['id' => $this->wa_media_id];
+        }
+
+        $diskName = config('whatsapp.download_disk', 'local');
 
         // Verificar que el archivo existe
-        if (!file_exists($filePath)) {
+        if (!Storage::disk($diskName)->exists($filePath)) {
             throw new \InvalidArgumentException("El archivo no existe: $filePath");
         }
 
-        // Obtener el tipo MIME del archivo
-        $mimeType = mime_content_type($filePath);
+        $mimeType = MimeType::tryFrom(Storage::disk($diskName)->mimeType($filePath));
+
+        if(!$mimeType){
+            throw new \InvalidArgumentException("Mime type no soportado: $filePath");
+        }
+
+        $fileContent = Storage::disk($diskName)->get($filePath);
+
+        $tempPath = sys_get_temp_dir() . '/' . uniqid() . '.' . $mimeType->fileExtension();
+
+        file_put_contents($tempPath, $fileContent);
+
+        $url = config('whatsapp.base_url') . '/' . config('whatsapp.graph_version') . '/' . $this->apiPhoneNumber->phone_number_id . '/media';
+        $token = config('whatsapp.access_token');
         
         $response = Http::withToken($token)->asMultipart()->post($url, [
             [
@@ -131,18 +150,23 @@ class MediaElement extends Model
             ],
             [
                 'name' => 'file',
-                'contents' => fopen($filePath, 'r'),
+                'contents' => fopen($tempPath, 'r'),
                 'headers' => [
-                    'Content-Type' => $mimeType
+                    'Content-Type' => $mimeType->value
                 ]
             ]
         ]);
+
+        if (file_exists($tempPath)) {
+            unlink($tempPath);
+        }
 
         if ($response->failed()) {
             Log::warning('WhatsApp Media Upload API failed', [
                 'status' => $response->status(),
                 'body' => $response->json(),
             ]);
+
             return $response->json();
         }
 
@@ -157,6 +181,7 @@ class MediaElement extends Model
         if (isset($responseBody['id'])) {
             $this->update([
                 'wa_media_id' => $responseBody['id'],
+                'uploaded_at' => now()
             ]);
         }
 
@@ -166,7 +191,8 @@ class MediaElement extends Model
     public function getBase64ContentUrl()
     {
         $diskName = config('whatsapp.download_disk', 'local');
-        $downloadDisk = \Illuminate\Support\Facades\Storage::disk($diskName);
+
+        $downloadDisk = Storage::disk($diskName);
 
         if (!$downloadDisk->exists($this->filename)) {
             $this->download();

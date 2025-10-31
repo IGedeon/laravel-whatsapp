@@ -14,6 +14,7 @@ return [
         'mark_as_read_queue' => env('WHATSAPP_MARK_AS_READ_QUEUE', 'default'),
     ],
     'default_api_phone_number_id' => env('WHATSAPP_DEFAULT_API_PHONE_NUMBER_ID', null),
+    'default_display_phone_number' => env('WHATSAPP_DEFAULT_DISPLAY_PHONE_NUMBER', null),
     'listeners' => [
         // Clase listener para el evento WhatsAppMessageReceived. Puede ser override en config published.
         'whatsapp_message_received' => \LaravelWhatsApp\Listeners\HandleWhatsAppMessageReceived::class,

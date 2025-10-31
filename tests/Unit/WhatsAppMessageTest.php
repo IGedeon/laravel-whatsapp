@@ -48,6 +48,44 @@ it('inicializa mensaje de imagen con ID', function () {
         ->and($msg->caption)->toBe($caption);
 });
 
+it('has mediable relationship using morphOne', function () {
+    // Test that the method exists and is a relationship
+    $msg = new \LaravelWhatsApp\Models\WhatsAppMessage();
+    
+    expect(method_exists($msg, 'mediable'))->toBeTrue();
+});
+
+it('can access content properties correctly', function () {
+    $contact = new Contact(['id' => 1]);
+    $apiPhone = new ApiPhoneNumber(['id' => 2]);
+    $msg = new Text($contact, 'Test message', false, $apiPhone);
+
+    // Test setting and getting content properties
+    $msg->setContentProperty('custom_field', 'custom_value');
+    
+    expect($msg->getContentProperty('custom_field'))->toBe('custom_value')
+        ->and($msg->getContentProperty('nonexistent'))->toBeNull();
+});
+
+it('can create message with null parameters', function () {
+    $contact = new Contact(['id' => 1]);
+    $apiPhone = new ApiPhoneNumber(['id' => 2]);
+    
+    $msg = new \LaravelWhatsApp\Models\WhatsAppMessage();
+    
+    expect(function () use ($msg, $contact, $apiPhone) {
+        $msg->initMessage(
+            MessageType::TEXT,
+            null, // direction should default to OUTGOING
+            $contact,
+            $apiPhone,
+            ['text' => ['body' => 'Test']]
+        );
+    })->not->toThrow(\Exception::class);
+    
+    expect($msg->direction)->toBe(MessageDirection::OUTGOING);
+});
+
 it('crea mensaje de texto usando make()', function () {
     $contact = new Contact(['id' => 3]);
     $apiPhone = new ApiPhoneNumber(['id' => 4]);

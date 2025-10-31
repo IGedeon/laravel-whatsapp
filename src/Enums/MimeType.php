@@ -38,9 +38,9 @@ enum MimeType : string
         return $this->category() === strtoupper($category);
     }
 
-    public function categoryTypes(): array
+    public static function categoryTypes(): array
     {
-        return match($this->category()) {
+        return [
             'AUDIO' => [
                 self::AUDIO_AAC,
                 self::AUDIO_AMR,
@@ -69,8 +69,7 @@ enum MimeType : string
                 self::VIDEO_3GPP,
                 self::VIDEO_MP4,
             ],
-            default => [],
-        };
+        ];
     }
 
     public function fileExtension(): string
