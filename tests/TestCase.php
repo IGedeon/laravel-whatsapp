@@ -6,6 +6,7 @@ use LaravelWhatsApp\WhatsAppServiceProvider;
 use Orchestra\Testbench\TestCase as TestbenchTestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Workbench\App\Providers\WorkbenchServiceProvider;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 abstract class TestCase extends TestbenchTestCase
 {
@@ -45,5 +46,8 @@ abstract class TestCase extends TestbenchTestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
+		Factory::guessFactoryNamesUsing(function (string $modelName) {
+			return 'Database\\Factories\\'.class_basename($modelName).'Factory';
+		});
 	}
 }

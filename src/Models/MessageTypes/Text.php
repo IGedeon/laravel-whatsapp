@@ -15,7 +15,7 @@ class Text extends WhatsAppMessage
 {
     protected $appends = ['body','previewUrl'];
 
-    public function __construct(Contact $to = null, string $body = '', bool $preview_url = false, ApiPhoneNumber $from = null)
+    public function __construct(?Contact $to = null, string $body = '', bool $preview_url = false, ?ApiPhoneNumber $from = null)
     {
         parent::__construct();
         if ($to === null && $from === null && $body === '' && $preview_url === false) {

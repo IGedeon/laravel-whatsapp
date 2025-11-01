@@ -20,4 +20,8 @@ return [
         'whatsapp_message_received' => \LaravelWhatsApp\Listeners\HandleWhatsAppMessageReceived::class,
     ],
     'mark_messages_as_read_immediately' => env('WHATSAPP_MARK_MESSAGES_AS_READ_IMMEDIATELY', false),
+
+    // Allow overriding the Contact and ApiPhoneNumber model classes
+    'contact_model' => \LaravelWhatsApp\Models\Contact::class,
+    'apiphone_model' => \LaravelWhatsApp\Models\ApiPhoneNumber::class,
 ];

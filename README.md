@@ -1,22 +1,23 @@
-# Laravel WhatsApp Cloud API (Multi Número)
+# ![Tests](https://github.com/IGedeon/laravel-whatsapp/actions/workflows/test.yml/badge.svg)
+# Laravel WhatsApp Cloud API (Multi Number)
 
-Librería para integrar la WhatsApp Cloud API en aplicaciones Laravel. Incluye:
+Library to integrate WhatsApp Cloud API into Laravel applications. Features:
 
-- Soporte para múltiples números (Business Phone Numbers)
-- Persistencia de contactos, mensajes, conversaciones y errores
-- Descarga y subida de medios (imágenes, documentos, audio, video, stickers)
-- Manejo de colas opcional para envío y descarga de media
-- Utilidades para marcar mensajes como leídos
+- Support for multiple numbers (Business Phone Numbers)
+- Persistence for contacts, messages, conversations, and errors
+- Download and upload of media (images, documents, audio, video, stickers)
+- Optional queue handling for sending and downloading media
+- Utilities to mark messages as read
 
 ---
 
-## Instalación
+## Installation
 
 ```bash
 composer require igedeon/laravel-whatsapp
 ```
 
-Publicar configuración y migraciones (método manual):
+Publish configuration and migrations (manual method):
 
 ```bash
 php artisan vendor:publish --provider="LaravelWhatsApp\\WhatsAppServiceProvider" --tag=whatsapp-config
@@ -24,30 +25,95 @@ php artisan vendor:publish --provider="LaravelWhatsApp\\WhatsAppServiceProvider"
 php artisan migrate
 ```
 
-O publicar todo en un solo paso:
+Or publish everything in one step:
 
 ```bash
 php artisan vendor:publish --provider="LaravelWhatsApp\\WhatsAppServiceProvider" --tag=whatsapp
 ```
 
-### Comando de instalación rápido
+---
 
-El paquete provee un comando para simplificar la instalación:
+## Webhook Security: Signature Verification
 
-```bash
-php artisan whatsapp:install            # Publica config y migraciones
-php artisan whatsapp:install --migrate  # Publica y ejecuta migraciones
-php artisan whatsapp:install --force    # Fuerza sobreescritura de archivos ya publicados
+The `VerifyMetaSignature` middleware validates the authenticity of received webhooks using the `X-Hub-Signature-256` header and the secret configured in `whatsapp.app_secret`. If the signature is invalid or the secret is missing, the request will be rejected (401) or an exception will be thrown.
+
+For local testing, you can disable the middleware using:
+
+```php
+$this->withoutMiddleware(\LaravelWhatsApp\Http\Middleware\VerifyMetaSignature::class);
 ```
 
-Flags disponibles:
 
-- `--force`: sobreescribe archivos ya existentes.
-- `--no-config`: no publica el archivo de configuración.
-- `--no-migrations`: no publica las migraciones.
-- `--migrate`: ejecuta las migraciones inmediatamente.
+For integration tests, make sure to generate the signature using:
 
-Ejemplos avanzados:
+```php
+$signature = hash_hmac('sha256', $rawBody, config('whatsapp.app_secret'));
+```
+
+And send the header:
+
+```
+X-Hub-Signature-256: sha256=<signature>
+```
+
+If the secret is not configured, an exception will be thrown to prevent processing insecure webhooks.
+
+---
+
+## Extending the Contact and ApiPhoneNumber Models
+
+You can extend the `Contact` and `ApiPhoneNumber` models to add custom logic or attributes. Set the model class in the config file:
+
+```php
+// config/whatsapp.php
+'contact_model' => \App\Models\CustomContact::class,
+'apiphone_model' => \App\Models\CustomApiPhoneNumber::class,
+```
+
+Both models can be overridden to customize relationships, validations, or methods. The package will use the configured class in all internal processes.
+
+Example of an extended model:
+
+```php
+namespace App\Models;
+
+use LaravelWhatsApp\Models\Contact;
+use LaravelWhatsApp\Models\ApiPhoneNumber;
+
+class CustomContact extends Contact
+{
+	// Add your methods or properties here
+}
+
+class CustomApiPhoneNumber extends ApiPhoneNumber
+{
+	// Add your methods or properties here
+}
+```
+
+Remember to run `php artisan config:cache` if you use config caching.
+
+---
+
+### Quick Install Command
+
+The package provides a command to simplify installation:
+
+
+```bash
+php artisan whatsapp:install            # Publishes config and migrations
+php artisan whatsapp:install --migrate  # Publishes and runs migrations
+php artisan whatsapp:install --force    # Forces overwrite of already published files
+```
+
+Available flags:
+
+- `--force`: overwrites existing files.
+- `--no-config`: does not publish the config file.
+- `--no-migrations`: does not publish migrations.
+- `--migrate`: runs migrations immediately.
+
+Advanced examples:
 
 ```bash
 php artisan whatsapp:install --no-config --migrate
@@ -56,29 +122,29 @@ php artisan whatsapp:install --no-migrations
 
 ---
 
-## Variables de entorno y configuración (`config/whatsapp.php`)
+## Environment Variables and Configuration (`config/whatsapp.php`)
 
-| Variable | Requerido | Default | Descripción |
+| Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `WHATSAPP_ACCESS_TOKEN` | Sí | - | Token de acceso (Long-Lived) generado en Meta para autenticar peticiones a la Cloud API. Sin esto no se pueden enviar ni descargar medios. |
-| `WHATSAPP_VERIFY_TOKEN` | Opcional (solo Webhook) | - | Token que valida el webhook de verificación de Meta. Úsalo si expones endpoint de verificación. |
-| `WHATSAPP_APP_SECRET` | Opcional | - | App Secret para validación de firmas de seguridad del webhook. |
-| `WHATSAPP_GRAPH_VERSION` | No | `v21.0` | Versión del Graph API usada para construir las URLs de la Cloud API. Actualiza cuando Meta publique nuevas features. |
-| `WHATSAPP_BASE_URL` | No | `https://graph.facebook.com` | Host base del Graph API. Modificar solo para entornos de prueba o mocks. |
-| `WHATSAPP_DOWNLOAD_DISK` | No | `local` | Disk Laravel (config `filesystems.php`) donde se guardarán los archivos descargados. Ej: `public`, `s3`. |
-| `WHATSAPP_QUEUE_CONNECTION` | No | `sync` | Conexión de cola (config `queue.php`). Ej: `redis`, `database`, `sqs`. |
-| `WHATSAPP_MEDIA_DOWNLOAD_QUEUE` | No | `default` | Nombre de la cola donde se encola el Job `DownloadMedia`. |
-| `WHATSAPP_MARK_AS_READ_QUEUE` | No | `default` | Nombre de la cola donde se encola el Job `MarkAsRead`. |
-| `WHATSAPP_DEFAULT_API_PHONE_NUMBER_ID` | Opcional | `null` | ID del número de teléfono Business (phone_number_id) que se usará por defecto al crear mensajes si no se pasa explícitamente un `ApiPhoneNumber`. |
-| `WHATSAPP_DEFAULT_DISPLAY_PHONE_NUMBER` | Opcional | `null` | Número de teléfono para mostrar por defecto (ej: +1234567890). |
+| `WHATSAPP_ACCESS_TOKEN` | Yes | - | Long-Lived access token generated in Meta to authenticate requests to the Cloud API. Required to send or download media. |
+| `WHATSAPP_VERIFY_TOKEN` | Optional (Webhook only) | - | Token to validate Meta's webhook verification. Use if you expose a verification endpoint. |
+| `WHATSAPP_APP_SECRET` | Optional | - | App Secret for webhook signature validation. |
+| `WHATSAPP_GRAPH_VERSION` | No | `v21.0` | Graph API version used to build Cloud API URLs. Update when Meta releases new features. |
+| `WHATSAPP_BASE_URL` | No | `https://graph.facebook.com` | Base host for Graph API. Change only for testing or mocks. |
+| `WHATSAPP_DOWNLOAD_DISK` | No | `local` | Laravel disk (see `filesystems.php`) where downloaded files are stored. E.g., `public`, `s3`. |
+| `WHATSAPP_QUEUE_CONNECTION` | No | `sync` | Queue connection (see `queue.php`). E.g., `redis`, `database`, `sqs`. |
+| `WHATSAPP_MEDIA_DOWNLOAD_QUEUE` | No | `default` | Name of the queue for the `DownloadMedia` Job. |
+| `WHATSAPP_MARK_AS_READ_QUEUE` | No | `default` | Name of the queue for the `MarkAsRead` Job. |
+| `WHATSAPP_DEFAULT_API_PHONE_NUMBER_ID` | Optional | `null` | Business phone number ID (`phone_number_id`) used by default when creating messages if an `ApiPhoneNumber` is not explicitly provided. |
+| `WHATSAPP_DEFAULT_DISPLAY_PHONE_NUMBER` | Optional | `null` | Default display phone number (e.g., +1234567890). |
 
-Notas:
+Notes:
 
-1. Para mensajes salientes se requiere al menos un registro en la tabla `whatsapp_api_phone_numbers` (ver migración) con su `phone_number_id` real obtenido del panel de Meta.
-2. Si defines `WHATSAPP_DEFAULT_API_PHONE_NUMBER_ID`, el modelo `WhatsAppMessage` intentará usarlo automáticamente cuando llames a `initMessage()` sin pasar el número.
-3. Asegura que tu `WHATSAPP_ACCESS_TOKEN` sea de larga duración y actualizado antes de caducar.
+1. For outgoing messages, you need at least one record in the `whatsapp_api_phone_numbers` table (see migration) with its real `phone_number_id` obtained from the Meta panel.
+2. If you set `WHATSAPP_DEFAULT_API_PHONE_NUMBER_ID`, the `WhatsAppMessage` model will try to use it automatically when you call `initMessage()` without passing a number.
+3. Make sure your `WHATSAPP_ACCESS_TOKEN` is long-lived and updated before it expires.
 
-Ejemplo `.env` mínimo:
+Minimal `.env` example:
 
 ```dotenv
 WHATSAPP_ACCESS_TOKEN=EAABxxxxxxxxxxxxxxxxxxxxx
@@ -90,43 +156,44 @@ WHATSAPP_DOWNLOAD_DISK=public
 
 ---
 
-## Modelo principal para envío: `WhatsAppMessage`
+## Main Model for Sending: `WhatsAppMessage`
 
-Flujo básico para enviar un mensaje:
+Basic flow to send a message:
 
-1. Crear (o recuperar) el `Contact` destinatario (campo `wa_id` = número sin +, con código país).
-2. Crear o recuperar el `ApiPhoneNumber` desde el cual envías (si no tienes default configurado).
-3. Instanciar `WhatsAppMessage`, inicializarlo con `initMessage()` pasando tipo y contenido.
-4. Llamar a `send()` del modelo (que delega en `WhatsAppMessageService`).
+1. Create (or retrieve) the recipient `Contact` (`wa_id` field = number without +, with country code).
+2. Create or retrieve the `ApiPhoneNumber` you send from (if you don't have a default configured).
+3. Instantiate `WhatsAppMessage`, initialize it with `initMessage()` passing type and content.
+4. Call `send()` on the model (delegates to `WhatsAppMessageService`).
 
-Tipos soportados (enum `MessageType`): `text`, `image`, `video`, `audio`, `document`, `sticker`, `location`, `contacts`, `button`, `interactive`, `reaction`, `order`. Algunos requieren estructura específica en `content`.
-\n+Nuevo tipo soportado: `template` para mensajes de plantilla aprobados por Meta. Usa un payload con `template => [ name, language[code], components[] ]`.
+Supported types (enum `MessageType`): `text`, `image`, `video`, `audio`, `document`, `sticker`, `location`, `contacts`, `button`, `interactive`, `reaction`, `order`. Some require specific structure in `content`.
 
-Estructura genérica del `content` enviada al API:
+New supported type: `template` for Meta-approved template messages. Use a payload with `template => [ name, language[code], components[] ]`.
+
+Generic structure of `content` sent to the API:
 
 ```php
 [
-  // Para texto
-  'body' => 'Mensaje de prueba',
-  // Para imagen/video/document/audio (después de subir media) usar 'id' del media
+  // For text
+  'body' => 'Test message',
+  // For image/video/document/audio (after uploading media) use 'id' of the media
   // 'id' => 'MEDIA_ID'
 ]
 ```
 
-El servicio construye automáticamente el payload con:
+The service automatically builds the payload as:
 
 ```json
 {
   "messaging_product": "whatsapp",
   "to": "<wa_id>",
   "type": "text|image|...",
-  "text|image|video|...": { ... contenido ... }
+  "text|image|video|...": { ... content ... }
 }
 ```
 
 ---
 
-## Ejemplo: Enviar mensaje de texto
+## Example: Send a Text Message
 
 ```php
 use LaravelWhatsApp\Models\Contact;
@@ -134,32 +201,32 @@ use LaravelWhatsApp\Models\ApiPhoneNumber;
 use LaravelWhatsApp\Models\WhatsAppMessage;
 use LaravelWhatsApp\Enums\MessageType;
 
-// 1. Obtener/crear contacto
+// 1. Get or create contact
 $contact = Contact::firstOrCreate([
-	'wa_id' => '5215512345678', // Número destino sin '+'
+	'wa_id' => '5215512345678', // Destination number without '+'
 ], [
 	'name' => 'Juan Perez'
 ]);
 
-// 2. (Opcional) Obtener número de envío si no hay default
+// 2. (Optional) Get sending number if no default
 $from = ApiPhoneNumber::where('phone_number_id', env('WHATSAPP_DEFAULT_API_PHONE_NUMBER_ID'))->first();
 
-// 3. Crear instancia de mensaje
+// 3. Create message instance
 $message = new WhatsAppMessage();
 $message->initMessage(
 	type: MessageType::TEXT,
 	to: $contact,
-	from: $from, // Puede omitirse si hay default configurado
+	from: $from, // Can be omitted if default is configured
 	contentProps: [
-		'body' => 'Hola! Este es un mensaje de prueba.'
+		'body' => 'Hello! This is a test message.'
 	]
 );
 
-// 4. Enviar
+// 4. Send
 $message->send();
 ```
 
-## Ejemplo: Enviar mensaje de plantilla (Template Message)
+## Example: Send a Template Message
 
 ```php
 use LaravelWhatsApp\Services\WhatsAppMessageService;
@@ -174,7 +241,7 @@ $components = [
 		'type' => 'body',
 		'parameters' => [
 			['type' => 'text', 'text' => 'Juan'],
-			['type' => 'text', 'text' => 'Pedido #1234'],
+			['type' => 'text', 'text' => 'Order #1234'],
 		]
 	],
 	[
@@ -182,7 +249,7 @@ $components = [
 		'sub_type' => 'url',
 		'index' => 0,
 		'parameters' => [
-			['type' => 'text', 'text' => '1234'] // token para URL dinámica
+			['type' => 'text', 'text' => '1234'] // token for dynamic URL
 		]
 	]
 ];
@@ -195,7 +262,7 @@ $service->sendTemplateMessage(
 );
 ```
 
-Estructura esperada final enviada a la Cloud API:
+Expected structure sent to the Cloud API:
 
 ```json
 {
@@ -206,24 +273,24 @@ Estructura esperada final enviada a la Cloud API:
 		"name": "order_followup",
 		"language": { "code": "es_CO" },
 		"components": [
-			{ "type": "body", "parameters": [ {"type":"text","text":"Juan"}, {"type":"text","text":"Pedido #1234"} ] },
+			{ "type": "body", "parameters": [ {"type":"text","text":"Juan"}, {"type":"text","text":"Order #1234"} ] },
 			{ "type": "button", "sub_type": "url", "index": 0, "parameters": [ {"type":"text","text":"1234"} ] }
 		]
 	}
 }
 ```
 
-Componentes válidos: `header`, `body`, `footer`, `button`. Consulta la documentación oficial para parámetros avanzados (ej: imágenes en header, quick_reply buttons, etc.).
+Valid components: `header`, `body`, `footer`, `button`. See official documentation for advanced parameters (e.g., images in header, quick_reply buttons, etc.).
 
-### Respuesta y almacenamiento
+### Response and Storage
 
-Tras enviarse, se guarda `wa_message_id` en la columna correspondiente y el registro queda persistido en `whatsapp_messages`.
+After sending, `wa_message_id` is saved in the corresponding column and the record is persisted in `whatsapp_messages`.
 
 ---
 
-## Ejemplo: Subir media y enviar una imagen
+## Example: Upload Media and Send an Image
 
-Para enviar una imagen primero debes subirla usando un `MediaElement`, después usar el `media_id` para crear el mensaje:
+To send an image, first upload it using a `MediaElement`, then use the `media_id` to create the message:
 
 ```php
 use LaravelWhatsApp\Models\Contact;
@@ -234,19 +301,19 @@ use LaravelWhatsApp\Models\MessageTypes\Image;
 $contact = Contact::firstOrCreate(['wa_id' => '5215512345678']);
 $from = ApiPhoneNumber::where('phone_number_id', env('WHATSAPP_DEFAULT_API_PHONE_NUMBER_ID'))->first();
 
-// Crear elemento de media y subir archivo
+// Create media element and upload file
 $media = MediaElement::create([
    'api_phone_number_id' => $from->id,
 ]);
 
 $uploadResponse = $media->upload(storage_path('app/example-image.jpg'));
 
-// Crear y enviar mensaje de imagen usando el media ID
+// Create and send image message using the media ID
 $imageMessage = Image::createFromId(
-    to: $contact,
-    from: $from, 
-    mediaId: $media->wa_media_id,
-    caption: 'Foto de producto' // Opcional
+	to: $contact,
+	from: $from, 
+	mediaId: $media->wa_media_id,
+	caption: 'Product photo' // Optional
 );
 
 $imageMessage->send();
@@ -254,70 +321,70 @@ $imageMessage->send();
 
 ---
 
-## Marcar un mensaje entrante como leído
+## Mark an Incoming Message as Read
 
 ```php
 use LaravelWhatsApp\Services\WhatsAppMessageService;
 use LaravelWhatsApp\Models\WhatsAppMessage;
 
 $service = app(WhatsAppMessageService::class);
-$incoming = WhatsAppMessage::find(123); // Mensaje previamente almacenado con direction INCOMING
+$incoming = WhatsAppMessage::find(123); // Previously stored message with direction INCOMING
 $service->markAsRead($incoming);
 ```
 
 ---
 
-## Descarga de Media
+## Media Download
 
-Cuando un mensaje entrante trae media, se crea registro en `whatsapp_media_elements` y puede ejecutarse el Job `DownloadMedia`.
+When an incoming message contains media, a record is created in `whatsapp_media_elements` and the `DownloadMedia` Job can be executed.
 
 ```php
 use igedeon\LaravelWhatsApp\Jobs\DownloadMedia;
 use LaravelWhatsApp\Models\MediaElement;
 
 $media = MediaElement::find(55);
-DownloadMedia::dispatch($media); // Usa cola configurada en WHATSAPP_MEDIA_DOWNLOAD_QUEUE
+DownloadMedia::dispatch($media); // Uses queue configured in WHATSAPP_MEDIA_DOWNLOAD_QUEUE
 ```
 
-La descarga usa el disk configurado en `WHATSAPP_DOWNLOAD_DISK` y guarda el archivo con un nombre único.
+The download uses the disk configured in `WHATSAPP_DOWNLOAD_DISK` and saves the file with a unique name.
 
 ---
 
-## Evento: Recepción de Mensajes (`WhatsAppMessageReceived`)
+## Event: Message Reception (`WhatsAppMessageReceived`)
 
-El paquete dispara un evento cada vez que se recibe un mensaje vía webhook:
+The package fires an event every time a message is received via webhook:
 
 ```php
 LaravelWhatsApp\\Events\\WhatsAppMessageReceived
 ```
 
-Propiedades del evento:
+Event properties:
 
-- `$message` (`WhatsAppMessage`): El registro del mensaje.
-- `$media` (`MediaElement|null`): Media asociada si aplica y ya está descargada.
-- `$mediaDownloaded` (`bool`): `true` si el evento se disparó después de descargar la media; `false` si el mensaje no tenía media.
+- `$message` (`WhatsAppMessage`): The message record.
+- `$media` (`MediaElement|null`): Associated media if applicable and already downloaded.
+- `$mediaDownloaded` (`bool`): `true` if the event was fired after media download; `false` if the message had no media.
 
-Flujo:
-1. Mensaje entrante SIN media: el evento se dispara inmediatamente tras persistir el mensaje.
-2. Mensaje entrante CON media: se encola `DownloadMedia`. El evento se dispara SOLO después de completar la descarga.
+Flow:
+1. Incoming message WITHOUT media: event is fired immediately after persisting the message.
+2. Incoming message WITH media: `DownloadMedia` is queued. Event is fired ONLY after download completes.
 
-### Listener por defecto
+### Default Listener
 
-El paquete incluye un listener de referencia:
+The package includes a reference listener:
 
 ```php
 LaravelWhatsApp\\Listeners\\HandleWhatsAppMessageReceived
 ```
 
-Este listener solo hace `Log::info(...)`. Puedes reemplazarlo publicando la configuración del paquete.
+This listener only does `Log::info(...)`. You can replace it by publishing the package config.
 
-Publicar config si aún no lo hiciste:
+Publish config if you haven't already:
 
 ```bash
 php artisan vendor:publish --provider="LaravelWhatsApp\\WhatsAppServiceProvider" --tag=config
 ```
 
-En `config/whatsapp.php` encontrarás:
+In `config/whatsapp.php` you'll find:
 
 ```php
 'listeners' => [
@@ -325,66 +392,66 @@ En `config/whatsapp.php` encontrarás:
 ],
 ```
 
-### Usar tu propio listener
+### Use Your Own Listener
 
-Crea tu clase:
+Create your class:
 
 ```php
 namespace App\\Listeners;
 
 use LaravelWhatsApp\\Events\\WhatsAppMessageReceived;
 
-class MiListener
+class MyListener
 {
 	public function handle(WhatsAppMessageReceived $event): void
 	{
 		if ($event->mediaDownloaded) {
-			// Procesar media ya descargada
+			// Process already downloaded media
 		} else {
-			// Procesar mensaje sin media
+			// Process message without media
 		}
 	}
 }
 ```
 
-Edita `config/whatsapp.php`:
+Edit `config/whatsapp.php`:
 
 ```php
 'listeners' => [
-	'whatsapp_message_received' => App\\Listeners\\MiListener::class,
+	'whatsapp_message_received' => App\\Listeners\\MyListener::class,
 ],
 ```
 
-### Listener en cola
+### Listener in Queue
 
 ```php
 use Illuminate\\Contracts\\Queue\\ShouldQueue;
 use Illuminate\\Queue\\InteractsWithQueue;
 
-class MiListener implements ShouldQueue
+class MyListener implements ShouldQueue
 {
 	use InteractsWithQueue;
 
 	public function handle(WhatsAppMessageReceived $event): void
 	{
-		// Tarea pesada aquí
+		// Heavy task here
 	}
 }
 ```
 
-Asegúrate de configurar `QUEUE_CONNECTION` apropiadamente.
+Make sure to configure `QUEUE_CONNECTION` appropriately.
 
-### Múltiples listeners
+### Multiple Listeners
 
-Puedes registrar múltiples listeners manualmente (si quieres lógica separada) en tu `AppServiceProvider`:
+You can manually register multiple listeners (if you want separate logic) in your `AppServiceProvider`:
 
 ```php
 use Illuminate\\Support\\Facades\\Event;
 use LaravelWhatsApp\\Events\\WhatsAppMessageReceived;
 
 Event::listen(WhatsAppMessageReceived::class, [
-	App\\Listeners\\MiListener::class,
-	App\\Listeners\\OtroListener::class,
+	App\\Listeners\\MyListener::class,
+	App\\Listeners\\OtherListener::class,
 ]);
 ```
 
@@ -392,7 +459,7 @@ Event::listen(WhatsAppMessageReceived::class, [
 
 ## Tests
 
-Agrega tests en `tests/` y ejecuta Pest:
+Add tests in `tests/` and run Pest:
 
 ```bash
 composer test
@@ -400,7 +467,7 @@ composer test
 
 ---
 
-## Licencia
+## License
 
 MIT
 

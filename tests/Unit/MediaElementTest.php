@@ -12,8 +12,6 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
 
-uses(TestCase::class);
-
 beforeEach(function () {
     // Mock config values
     Config::set('whatsapp.base_url', 'https://graph.facebook.com');

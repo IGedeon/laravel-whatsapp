@@ -14,7 +14,7 @@ class VerifyMetaSignature
         $sigHeader = $request->header('X-Hub-Signature-256');
         $appSecret = config('whatsapp.app_secret'); // .env: WHATSAPP_APP_SECRET
 
-        if(!$appSecret){
+        if (empty($appSecret)) {
             throw new \Exception('App secret not configured in whatsapp.app_secret');
         }
 

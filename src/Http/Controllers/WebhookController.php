@@ -159,7 +159,8 @@ class WebhookController extends Controller
 
                 $phoneNumberId = Arr::get($change, 'value.metadata.phone_number_id', '');
 
-                $apiPhoneNumber = ApiPhoneNumber::firstOrCreate(
+                $apiPhoneModel = config('whatsapp.apiphone_model');
+                $apiPhoneNumber = $apiPhoneModel::firstOrCreate(
                     ['phone_number_id' => $phoneNumberId],
                     [
                         'name' => 'Phone Number '.$metadata['phone_number_id'] ?? '',
@@ -175,8 +176,9 @@ class WebhookController extends Controller
                 $contacts = collect([]);
                 $contacts_ = Arr::get($changeValue, 'contacts', []);
 
+                $contactModel = config('whatsapp.contact_model');
                 foreach ($contacts_ as $contactData) {
-                    $contact = Contact::firstOrCreate([
+                    $contact = $contactModel::firstOrCreate([
                         'wa_id' => $contactData['wa_id'] ?? '',
                         'name' => $contactData['profile']['name'] ?? '',
                     ]);

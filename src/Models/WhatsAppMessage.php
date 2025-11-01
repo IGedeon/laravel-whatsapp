@@ -1,5 +1,4 @@
 <?php
-
 namespace LaravelWhatsApp\Models;
 
 use Illuminate\Support\Arr;
@@ -11,8 +10,13 @@ use LaravelWhatsApp\Models\MessageTypes\Text;
 use LaravelWhatsApp\Models\MessageTypes\Image;
 use LaravelWhatsApp\Services\WhatsAppMessageService;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use LaravelWhatsApp\Enums\MessageStatus;
+
 class WhatsAppMessage extends Model
 {
+    use HasFactory;
+
     protected $table = 'whatsapp_messages';
 
     protected $fillable = [
@@ -41,6 +45,7 @@ class WhatsAppMessage extends Model
         'status_timestamp' => 'datetime',
         'context' => 'array',
         'content' => 'array',
+        'status' => MessageStatus::class
     ];
 
     public function getContentAttribute($value)

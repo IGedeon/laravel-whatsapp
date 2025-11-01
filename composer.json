@@ -28,7 +28,8 @@
   "autoload-dev": {
     "psr-4": {
       "LaravelWhatsApp\\Tests\\": "tests/",
-      "Tests\\": "tests/"
+      "Tests\\": "tests/",
+      "Database\\Factories\\": "database/factories/"
     }
   },
   "extra": {
