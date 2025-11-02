@@ -10,6 +10,43 @@ Biblioteca para integrar la API de WhatsApp Cloud en aplicaciones Laravel. Carac
 
 ---
 
+## Soporte para cuentas empresariales y plantillas
+
+Este paquete ahora soporta la gestión de cuentas empresariales de WhatsApp y plantillas de mensajes:
+
+- **Modelo BusinessAccount**: Representa una cuenta empresarial de WhatsApp, incluyendo campos para nombre, moneda, zona horaria, token de acceso y relación con números y plantillas.
+- **Modelo Template**: Representa una plantilla de mensaje de WhatsApp, incluyendo nombre, idioma, categoría y componentes.
+- **Factories y migraciones**: Nuevas factories y migraciones para cuentas empresariales y plantillas.
+- **Integración en el servicio**: El envío de mensajes y plantillas ahora utiliza los nuevos modelos y relaciones.
+- **Tests y stubs**: Cobertura de pruebas y ejemplos actualizados para cuentas empresariales y plantillas.
+
+Consulta los nuevos modelos en `src/Models/BusinessAccount.php` y `src/Models/Template.php`. Las factories y migraciones están en `database/factories/` y `database/migrations/`.
+
+---
+
+## Uso recomendado: Sincronización automática de WABA
+
+La forma recomendada de usar el paquete es crear un registro `BusinessAccount` con el `whatsapp_id` de tu cuenta empresarial de WhatsApp y su token de acceso. El paquete se encargará de recuperar y sincronizar automáticamente toda la información relacionada desde Meta:
+
+- **Números de teléfono**: Todos los números verificados asociados a la WABA se obtienen y almacenan localmente.
+- **Plantillas**: Todas las plantillas de mensajes aprobadas para la WABA se recuperan y almacenan.
+- **Perfil empresarial**: Nombre, moneda, zona horaria y otros metadatos se mantienen actualizados.
+
+Esto se realiza usando el método `getFromMeta()` en el modelo `BusinessAccount`:
+
+```php
+$waba = BusinessAccount::create([
+    'whatsapp_id' => 'TU_WABA_ID',
+    'access_token' => 'TU_TOKEN_LARGO',
+]);
+
+$waba->getFromMeta(); // Sincroniza números, plantillas y perfil empresarial
+```
+
+Después de esto, puedes usar los modelos y relaciones del paquete para enviar mensajes, gestionar plantillas e interactuar con todos los recursos de WhatsApp para tu cuenta empresarial.
+
+---
+
 ## Conceptos principales
 
 ```mermaid
@@ -214,10 +251,9 @@ php artisan whatsapp:install --no-migrations
 
 | Variable | Requerido | Valor por defecto | Descripción |
 |----------|-----------|------------------|-------------|
-| `WHATSAPP_ACCESS_TOKEN` | Sí | - | Token de acceso de larga duración generado en Meta para autenticar solicitudes a la Cloud API. Requerido para enviar o descargar medios. |
 | `WHATSAPP_VERIFY_TOKEN` | Opcional (solo Webhook) | - | Token para validar la verificación del webhook de Meta. Úsalo si expones un endpoint de verificación. |
 | `WHATSAPP_APP_SECRET` | Opcional | - | Secreto de la App para validar la firma del webhook. |
-| `WHATSAPP_GRAPH_VERSION` | No | `v21.0` | Versión de la Graph API usada para construir URLs de la Cloud API. Actualiza cuando Meta lance nuevas funciones. |
+| `WHATSAPP_GRAPH_VERSION` | No | `v24.0` | Versión de la Graph API usada para construir URLs de la Cloud API. Actualiza cuando Meta lance nuevas funciones. |
 | `WHATSAPP_BASE_URL` | No | `https://graph.facebook.com` | Host base para la Graph API. Cambia solo para pruebas o mocks. |
 | `WHATSAPP_DOWNLOAD_DISK` | No | `local` | Disco de Laravel (ver `filesystems.php`) donde se almacenan los archivos descargados. Ejemplo: `public`, `s3`. |
 | `WHATSAPP_QUEUE_CONNECTION` | No | `sync` | Conexión de cola (ver `queue.php`). Ejemplo: `redis`, `database`, `sqs`. |
@@ -230,15 +266,11 @@ Notas:
 
 1. Para mensajes salientes, necesitas al menos un registro en la tabla `whatsapp_api_phone_numbers` (ver migración) con su `phone_number_id` real obtenido desde el panel de Meta.
 2. Si solo hay un registro de `ApiPhoneNumber`, el modelo `WhatsAppMessage` intentará usarlo automáticamente cuando llames a `initMessage()` sin pasar un número.
-3. Asegúrate de que tu `WHATSAPP_ACCESS_TOKEN` sea de larga duración y esté actualizado antes de que expire.
 
 Ejemplo mínimo de `.env`:
 
 ```dotenv
-WHATSAPP_ACCESS_TOKEN=EAABxxxxxxxxxxxxxxxxxxxxx
-WHATSAPP_DEFAULT_API_PHONE_NUMBER_ID=123456789012345
-WHATSAPP_DEFAULT_DISPLAY_PHONE_NUMBER=+1234567890
-WHATSAPP_GRAPH_VERSION=v21.0
+WHATSAPP_APP_SECRET="d33555772181cc8eda34866603d86c77"
 WHATSAPP_DOWNLOAD_DISK=public
 ```
 

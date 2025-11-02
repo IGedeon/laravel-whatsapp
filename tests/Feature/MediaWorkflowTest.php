@@ -15,7 +15,6 @@ uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
     Config::set('whatsapp.base_url', 'https://graph.facebook.com');
-    Config::set('whatsapp.graph_version', 'v18.0');
     Config::set('whatsapp.download_disk', 'local');
 });
 

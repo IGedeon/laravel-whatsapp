@@ -152,13 +152,16 @@ class WebhookController extends Controller
                 $phoneNumberId = Arr::get($change, 'value.metadata.phone_number_id', '');
 
                 $apiPhoneModel = config('whatsapp.apiphone_model');
-                $apiPhoneNumber = $apiPhoneModel::firstOrCreate(
-                    ['phone_number_id' => $phoneNumberId],
-                    [
-                        'name' => 'Phone Number '.$metadata['phone_number_id'] ?? '',
-                        'display_phone_number' => $metadata['display_phone_number'] ?? '',
-                    ]
-                );
+
+                $apiPhoneNumber = $apiPhoneModel::where('whatsapp_id', $phoneNumberId)->first();
+                if (! $apiPhoneNumber) {
+                    return response('ApiPhoneNumber not found for phone_number_id: '.$phoneNumberId, 400);
+                }
+
+                $apiPhoneNumber->update([
+                    'name' => 'Phone Number '.$metadata['phone_number_id'] ?? '',
+                    'display_phone_number' => $metadata['display_phone_number'] ?? '',
+                ]);
 
                 $statuses = Arr::get($changeValue, 'statuses', null);
                 if ($statuses !== null) {

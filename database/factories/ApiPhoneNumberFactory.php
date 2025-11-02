@@ -12,10 +12,14 @@ class ApiPhoneNumberFactory extends Factory
     public function definition()
     {
         return [
-            'name' => $this->faker->company,
+            'business_account_id' => BusinessAccountFactory::new(),
+            'verified_name' => $this->faker->company,
+            'code_verification_status' => $this->faker->randomElement(['verified', 'unverified']),
             'display_phone_number' => $this->faker->phoneNumber,
-            'access_token' => $this->faker->uuid,
-            'phone_number_id' => $this->faker->numerify('123456789012345'),
+            'quality_rating' => $this->faker->randomElement(['green', 'yellow', 'red']),
+            'throughput_level' => $this->faker->randomElement(['low', 'medium', 'high']),
+            'webhook_configuration_application' => [],
+            'whatsapp_id' => $this->faker->uuid,
         ];
     }
 }

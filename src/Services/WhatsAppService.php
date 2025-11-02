@@ -5,6 +5,7 @@ namespace LaravelWhatsApp\Services;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use LaravelWhatsApp\Models\ApiPhoneNumber;
+use LaravelWhatsApp\Models\BusinessAccount;
 use LaravelWhatsApp\Models\Contact;
 use LaravelWhatsApp\Models\WhatsAppMessage;
 
@@ -12,7 +13,7 @@ use LaravelWhatsApp\Models\WhatsAppMessage;
  * Servicio de alto nivel para enviar mensajes salientes y marcar mensajes entrantes como leídos.
  * Encapsula la construcción de payloads de la Cloud API y el registro en base de datos.
  */
-class WhatsAppMessageService
+class WhatsAppService
 {
     /**
      * Envía un mensaje de texto sencillo.
@@ -31,7 +32,7 @@ class WhatsAppMessageService
             $type => $whatsAppMessage->content,
         ];
 
-        $response = self::apiRequest($whatsAppMessage->apiPhoneNumber, $data);
+        $response = self::apiPostRequest(waba: $whatsAppMessage->apiPhoneNumber->businessAccount, uri: '/'.$whatsAppMessage->apiPhoneNumber->id.'/messages', payload: $data);
 
         $whatsAppMessage->wa_message_id = $response['messages'][0]['id'] ?? null;
         $whatsAppMessage->save();
@@ -79,29 +80,59 @@ class WhatsAppMessageService
         $message->status = \LaravelWhatsApp\Enums\MessageStatus::READ;
         $message->status_timestamp = now();
 
-        self::apiRequest($message->apiPhoneNumber, $data);
+        self::apiPostRequest(waba:$message->apiPhoneNumber->businessAccount, uri: $message->apiPhoneNumber->whatsapp_id.'/messages', payload: $data);
 
         return true;
     }
 
-    protected static function apiRequest(ApiPhoneNumber $phoneNumber, array $data): array
+    protected static function baseUrl(): string
     {
-        $url = config('whatsapp.base_url').'/'.config('whatsapp.graph_version').'/'.$phoneNumber->phone_number_id.'/messages';
+        return config('whatsapp.base_url').'/'.config('whatsapp.graph_version').'/';
+    }
 
-        $token = $phoneNumber->access_token;
+    public function getWabaInfo(BusinessAccount $waba): array
+    {
+        $uri = $waba->id.'?fields=id,name,currency,timezone_id,message_template_namespace,message_templates,phone_numbers,subscribed_apps';
+
+        return self::apiGetRequest($waba, $uri);
+    }
+
+    protected static function apiGetRequest(BusinessAccount $waba, string $uri): array
+    {
+        return self::apiRequest(waba: $waba, uri: $uri, method: 'GET');
+    }
+
+    protected static function apiPostRequest(BusinessAccount $waba, string $uri, array $payload): array
+    {
+        return self::apiRequest(waba: $waba, uri: $uri, payload: $payload, method: 'POST');
+    }
+
+    protected static function apiRequest(BusinessAccount $waba, string $uri, array $payload = [], string $method = 'POST'): array
+    {
+        $url = self::baseUrl().$uri;
+
+        $token = $waba->access_token;
 
         if (empty($token)) {
             throw new \Exception('WhatsApp access token is not configured.');
         }
 
-        $response = Http::retry(times: 3, sleepMilliseconds: 100, when: null, throw: false)->withHeaders([
+        $request = Http::retry(times: 3, sleepMilliseconds: 100, when: null, throw: false)->withHeaders([
             'Authorization' => "Bearer $token",
             'Content-Type' => 'application/json',
-        ])->post($url, $data);
+        ]);
+
+        $response = match (strtoupper($method)) {
+            'POST' => $request->post($url, $payload),
+            'GET' => $request->get($url),
+            'DELETE' => $request->delete($url, $payload),
+            'PUT' => $request->put($url, $payload),
+            default => throw new \Exception('Unsupported HTTP method: '.$method),
+        };
 
         if ($response->failed()) {
             Log::error('WhatsApp API request failed', [
-                'request' => $data,
+                'request' => $payload,
                 'status' => $response->status(),
                 'body' => $response->body(),
             ]);
@@ -116,4 +147,6 @@ class WhatsAppMessageService
 
         return $json;
     }
+
+
 }

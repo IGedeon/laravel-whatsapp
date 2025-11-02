@@ -12,14 +12,19 @@ class ApiPhoneNumber extends Model
     protected $table = 'whatsapp_api_phone_numbers';
 
     protected $fillable = [
-        'name',
+        'business_account_id',
+        'verified_name',
+        'code_verification_status',
         'display_phone_number',
-        'access_token',
-        'phone_number_id',
+        'platform_type',
+        'quality_rating',
+        'throughput_level',
+        'webhook_configuration_application',
+        'whatsapp_id',
     ];
 
-    protected $hidden = [
-        'access_token',
+    protected $casts = [
+        'webhook_configuration_application' => 'array',
     ];
 
     public static function getDefault(): self
@@ -35,5 +40,10 @@ class ApiPhoneNumber extends Model
         }
 
         return $phoneNumbers->first();
+    }
+
+    public function businessAccount(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(BusinessAccount::class, 'business_account_id', 'id');
     }
 }

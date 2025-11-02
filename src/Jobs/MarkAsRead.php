@@ -3,12 +3,12 @@
 namespace LaravelWhatsApp\Jobs;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
 use LaravelWhatsApp\Models\WhatsAppMessage;
-use LaravelWhatsApp\Services\WhatsAppMessageService;
+use LaravelWhatsApp\Services\WhatsAppService;
 
 class MarkAsRead implements ShouldQueue
 {
@@ -27,7 +27,7 @@ class MarkAsRead implements ShouldQueue
      */
     public function handle(): void
     {
-        $service = new WhatsAppMessageService;
+        $service = new WhatsAppService();
         $service->markAsRead($this->message);
     }
 }

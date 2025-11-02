@@ -1,0 +1,121 @@
+{
+    "id": "1614027675951472",
+    "name": "Sideso Sas",
+    "currency": "USD",
+    "timezone_id": "43",
+    "message_template_namespace": "86845ea0_e092_4243_b19d_af232d294792",
+    "message_templates": {
+        "data": [
+            {
+                "name": "asamblea",
+                "message_send_ttl_seconds": 43200,
+                "parameter_format": "NAMED",
+                "components": [
+                    {
+                        "type": "HEADER",
+                        "format": "TEXT",
+                        "text": "La asamblea esta a punto de iniciar"
+                    },
+                    {
+                        "type": "BODY",
+                        "text": "Hola {{nombre}}, te recordamos tu cita confirmada para la Asamblea {{tipo_asamblea}} de copropietarios de {{nombre_copropiedad}}.\n\nLa asamblea se realizará en el lugar, fecha y hora especificados en la convocatoria.",
+                        "example": {
+                            "body_text_named_params": [
+                                {
+                                    "param_name": "nombre",
+                                    "example": "Carlos"
+                                },
+                                {
+                                    "param_name": "tipo_asamblea",
+                                    "example": "presencial"
+                                },
+                                {
+                                    "param_name": "nombre_copropiedad",
+                                    "example": "Palo Alto Club Residencial"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "type": "BUTTONS",
+                        "buttons": [
+                            {
+                                "type": "QUICK_REPLY",
+                                "text": "Acceder"
+                            }
+                        ]
+                    }
+                ],
+                "language": "es_CO",
+                "status": "APPROVED",
+                "category": "UTILITY",
+                "sub_category": "CUSTOM",
+                "id": "1985003245612551"
+            },
+            {
+                "name": "hello_world",
+                "parameter_format": "POSITIONAL",
+                "components": [
+                    {
+                        "type": "HEADER",
+                        "format": "TEXT",
+                        "text": "Hello World"
+                    },
+                    {
+                        "type": "BODY",
+                        "text": "Welcome and congratulations!! This message demonstrates your ability to send a WhatsApp message notification from the Cloud API, hosted by Meta. Thank you for taking the time to test with us."
+                    },
+                    {
+                        "type": "FOOTER",
+                        "text": "WhatsApp Business Platform sample message"
+                    }
+                ],
+                "language": "en_US",
+                "status": "APPROVED",
+                "category": "UTILITY",
+                "id": "1785367588991593"
+            }
+        ],
+        "paging": {
+            "cursors": {
+                "before": "QVFIU2tGQlZAhSDdoOFFXSlR5Rkppd2RrSGVEbjVuUGRVYnl3dk9DVmgzSU4wTVd3RzM0QTJkYjFKRG4zcGFkeDkwQ1NNQTFLRlJtMWUxejVyWk0zZAXlQWHlB",
+                "after": "QVFIU3pKVU1MczFfRW1mYjI5RHZADbjVqLThfN2U4Rk1mMk50dlp1QnhiZAG44TGpHaUZACLTZA5ak5kV01QcUE1QzdTTmN1S2lNaFhaWUtyTmF0QXlYSnlxOThB"
+            }
+        }
+    },
+    "phone_numbers": {
+        "data": [
+            {
+                "verified_name": "Sideso Sas",
+                "code_verification_status": "EXPIRED",
+                "display_phone_number": "+57 323 2523637",
+                "quality_rating": "GREEN",
+                "platform_type": "CLOUD_API",
+                "throughput": {
+                    "level": "STANDARD"
+                },
+                "webhook_configuration": {
+                    "application": "https://bot.sideso.com.co/whatsapp/webhook"
+                },
+                "id": "688092457716414"
+            }
+        ],
+        "paging": {
+            "cursors": {
+                "before": "QVFIU3ZA6RGRBUmw3OXBtNVJjQkJ0SFRKcmgwV3NGUHRadFNJUlpyM2lfcGJ0eVFldWJ4aEhSNzVkdmt2aTNyUWhYaFoZD",
+                "after": "QVFIU3ZA6RGRBUmw3OXBtNVJjQkJ0SFRKcmgwV3NGUHRadFNJUlpyM2lfcGJ0eVFldWJ4aEhSNzVkdmt2aTNyUWhYaFoZD"
+            }
+        }
+    },
+    "subscribed_apps": {
+        "data": [
+            {
+                "whatsapp_business_api_data": {
+                    "link": "https://www.facebook.com/games/?app_id=614881897638762",
+                    "name": "ai.bot.test",
+                    "id": "614881897638762"
+                }
+            }
+        ]
+    }
+}

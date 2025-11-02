@@ -1,5 +1,8 @@
 name: Fix Code Style
 
+permissions:
+  contents: write
+
 on: [push]
 
 jobs:

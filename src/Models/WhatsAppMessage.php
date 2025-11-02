@@ -2,16 +2,16 @@
 
 namespace LaravelWhatsApp\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Arr;
-use LaravelWhatsApp\Enums\MessageDirection;
-use LaravelWhatsApp\Enums\MessageStatus;
 use LaravelWhatsApp\Enums\MessageType;
-use LaravelWhatsApp\Models\MessageTypes\Image;
+use Illuminate\Database\Eloquent\Model;
+use LaravelWhatsApp\Enums\MessageStatus;
+use LaravelWhatsApp\Enums\MessageDirection;
 use LaravelWhatsApp\Models\MessageTypes\Text;
-use LaravelWhatsApp\Services\WhatsAppMessageService;
+use LaravelWhatsApp\Services\WhatsAppService;
+use LaravelWhatsApp\Models\MessageTypes\Image;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class WhatsAppMessage extends Model
 {
@@ -64,12 +64,12 @@ class WhatsAppMessage extends Model
 
     public function contact()
     {
-        return $this->belongsTo(Contact::class, 'contact_id');
+        return $this->belongsTo(config('whatsapp.contact_model'), 'contact_id');
     }
 
     public function apiPhoneNumber()
     {
-        return $this->belongsTo(ApiPhoneNumber::class, 'api_phone_number_id');
+        return $this->belongsTo(config('whatsapp.apiphone_model'), 'api_phone_number_id');
     }
 
     /**
@@ -179,13 +179,13 @@ class WhatsAppMessage extends Model
         $this->save();
 
         // Send the message using the WhatsApp API
-        $service = new WhatsAppMessageService;
+        $service = new WhatsAppService;
         $service->send($this);
     }
 
     public function markAsRead(bool $typingIndicator = false)
     {
-        $service = new WhatsAppMessageService;
+        $service = new WhatsAppService;
 
         return $service->markAsRead($this, $typingIndicator);
     }

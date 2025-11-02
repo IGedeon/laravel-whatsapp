@@ -4,7 +4,7 @@ return [
     'access_token' => env('WHATSAPP_ACCESS_TOKEN'),
     'verify_token' => env('WHATSAPP_VERIFY_TOKEN'),
     'app_secret' => env('WHATSAPP_APP_SECRET'),
-    'graph_version' => env('WHATSAPP_GRAPH_VERSION', 'v21.0'),
+    'graph_version' => env('WHATSAPP_GRAPH_VERSION', 'v24.0'),
     'base_url' => env('WHATSAPP_BASE_URL', 'https://graph.facebook.com'),
     'download_disk' => env('WHATSAPP_DOWNLOAD_DISK', 'local'),
     'queue' => [
