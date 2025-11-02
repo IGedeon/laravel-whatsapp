@@ -13,42 +13,122 @@ Library to integrate WhatsApp Cloud API into Laravel applications. Features:
 
 ---
 
+## Business Account and Template Capabilities
+
+This package provides advanced support for managing WhatsApp Business Accounts and Message Templates:
+
+- **BusinessAccount model**: Allows you to represent and manage WhatsApp Business Accounts, including business profile data, currency, timezone, access tokens, and relationships to phone numbers and templates. You can synchronize business account data from Meta, access related phone numbers, and manage templates directly from your Laravel application.
+
+- **Template model**: Lets you define, store, and use WhatsApp message templates, including their name, language, category, subcategory, and components. Templates can be associated with business accounts and used for sending Meta-approved template messages.
+
+- **Phone number management**: Each business account can have multiple associated phone numbers, with support for verification status, quality rating, throughput level, and webhook configuration.
+
+- **Sending messages and templates**: You can send regular and template-based WhatsApp messages using the relationships between contacts, business accounts, phone numbers, and templates. The service layer handles payload construction and API communication.
+
+- **Synchronization and automation**: Business account and template data can be synchronized from Meta using built-in service methods, keeping your local database up to date with the latest account and template information.
+
+- **Extensible relationships**: All models are designed to be extensible, allowing you to override, customize, and add business logic as needed for your application.
+
+Models are located in `src/Models/BusinessAccount.php`, `src/Models/Template.php`, and related files. Factories and migrations are provided for easy setup and testing.
+
+---
+
+## Recommended Usage: Automatic WABA Sync
+
+The recommended approach is to create a `BusinessAccount` record with your WhatsApp Business Account (`whatsapp_id`) and its access token. The package will then automatically retrieve and synchronize all related information from Meta:
+
+- **Phone numbers**: All verified phone numbers associated with the WABA are fetched and stored locally.
+- **Templates**: All approved message templates for the WABA are retrieved and stored.
+- **Business profile**: Name, currency, timezone, and other metadata are kept up to date.
+
+This is done using the `getFromMeta()` method on the `BusinessAccount` model:
+
+```php
+$waba = BusinessAccount::create([
+	'whatsapp_id' => 'YOUR_WABA_ID',
+	'access_token' => 'YOUR_LONG_LIVED_TOKEN',
+]);
+
+$waba->getFromMeta(); // Synchronizes phone numbers, templates, and profile info
+```
+
+After this, you can use the package's models and relationships to send messages, manage templates, and interact with all WhatsApp resources for your business account.
+
+---
+
+---
+
 ## Core concepts
 
 ```mermaid
 flowchart TB
- subgraph A["THE LITTLE CHICKS COMPANY"]
+
+%% ====== YOUR ORGANIZATION ======
+subgraph ORG["The Little Chicks Company"]
+	direction TB
+
+	%% ====== META APP ======
+	subgraph META["Meta App: WhatsApp AI"]
 		direction TB
-				APP["Meta App: WhatsApp AI"]
-				WEBHOOK["Global Webhook"]
-				SECRET["app_secret (security signature)"]
-				VERIFY["verify_token (subscription verification)"]
+		CONFIG["Configures Webhook URL using verify_token and app_secret"]
 	end
- subgraph B1["Portfolio: Company 2"]
+
+	%% ====== BACKEND ======
+	subgraph BACKEND["Laravel Multitenant Backend"]
 		direction TB
-				WABA1["WABA: WhatsApp Business Account"]
-				SYSUSER1["System User"]
-				TOKEN1["Access Token"]
-				PHONE11["+57 3001111111 The Good Eats"]
-				PHONE12["+57 3002222222 Hunger Buster"]
+		subgraph BACK_VERIFY["Verification"]
+			VERIFY["• Responds to Meta GET\n• Validates verify_token
+			• Returns hub.challenge"]
+		end
+		subgraph BACK_EVENTS["Event Reception"]
+			EVENTS["• Receives POST from Meta App
+			• Validates X-Hub-Signature-256
+			• Processes incoming messages"]
+		end
+		subgraph BACK_SEND["Message Sending"]
+			SEND["• Uses client's Access Token"]
+		end
 	end
- subgraph B2C["Portfolio: Company 1"]
+end
+
+%% ====== CLIENTS ======
+subgraph CLIENTS["Clients"]
+	direction TB
+
+	subgraph CLIENT1["Portfolio: Company 1"]
 		direction TB
-				WABA2["WABA: WhatsApp Business Account"]
-				SYSUSER2["System User"]
-				TOKEN2["Access Token"]
-				PHONE21["+57 3003333333 Desert Refreshments"]
-	end
-		APP --> WEBHOOK & SECRET & VERIFY
+		WABA1["WhatsApp Account (WABA)"]
+		SYSUSER1["System User (Client BM)"]
+		TOKEN1["Access Token"]
+		PHONE11["+57 3001111111 The Good Eats"]
+		WABA1 --> PHONE11
 		SYSUSER1 --> TOKEN1
-		WABA1 --> PHONE11 & PHONE12
-		SYSUSER2 --> TOKEN2
+	end
+
+	subgraph CLIENT2["Portfolio: Company 2"]
+		direction TB
+		WABA2["WhatsApp Account (WABA)"]
+		SYSUSER2["System User (Client BM)"]
+		TOKEN2["Access Token"]
+		PHONE21["+57 3002222222 Desert Refreshments"]
 		WABA2 --> PHONE21
-		APP -. connects to .-> WABA1 & WABA2
-		TOKEN1 -. used to send messages .-> APP
-		TOKEN2 -. used to send messages .-> APP
-		WABA1 -. sends webhooks to .-> WEBHOOK
-		WABA2 -. sends webhooks to .-> WEBHOOK
+		SYSUSER2 --> TOKEN2
+	end
+end
+
+%% Event flow (always through the configured App)
+WABA1 -. "Generates events (messages, statuses)" .-> CONFIG
+WABA2 -. "Generates events (messages, statuses)" .-> CONFIG
+CONFIG --"Sends to configured Webhook" --> BACK_EVENTS
+
+%% Initial webhook verification
+CONFIG -- Occurs only once during setup --> BACK_VERIFY
+
+%% Outgoing messaging (from Backend to Graph API)
+TOKEN1 -. "Bearer token (Graph API)" .-> BACK_SEND
+TOKEN2 -. "Bearer token (Graph API)" .-> BACK_SEND
+BACK_SEND -. "POST /{phone_number_id}/messages" .-> WABA1
+BACK_SEND -. "POST /{phone_number_id}/messages" .-> WABA2
 ```
 
 1. **Business Portfolio**  
@@ -178,10 +258,9 @@ php artisan whatsapp:install --no-migrations
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `WHATSAPP_ACCESS_TOKEN` | Yes | - | Long-Lived access token generated in Meta to authenticate requests to the Cloud API. Required to send or download media. |
 | `WHATSAPP_VERIFY_TOKEN` | Optional (Webhook only) | - | Token to validate Meta's webhook verification. Use if you expose a verification endpoint. |
 | `WHATSAPP_APP_SECRET` | Optional | - | App Secret for webhook signature validation. |
-| `WHATSAPP_GRAPH_VERSION` | No | `v21.0` | Graph API version used to build Cloud API URLs. Update when Meta releases new features. |
+| `WHATSAPP_GRAPH_VERSION` | No | `v24.0` | Graph API version used to build Cloud API URLs. Update when Meta releases new features. |
 | `WHATSAPP_BASE_URL` | No | `https://graph.facebook.com` | Base host for Graph API. Change only for testing or mocks. |
 | `WHATSAPP_DOWNLOAD_DISK` | No | `local` | Laravel disk (see `filesystems.php`) where downloaded files are stored. E.g., `public`, `s3`. |
 | `WHATSAPP_QUEUE_CONNECTION` | No | `sync` | Queue connection (see `queue.php`). E.g., `redis`, `database`, `sqs`. |
@@ -194,15 +273,11 @@ Notes:
 
 1. For outgoing messages, you need at least one record in the `whatsapp_api_phone_numbers` table (see migration) with its real `phone_number_id` obtained from the Meta panel.
 2. If there is only one `ApiPhoneNumber` record, the `WhatsAppMessage` model will try to use it automatically when you call `initMessage()` without passing a number.
-3. Make sure your `WHATSAPP_ACCESS_TOKEN` is long-lived and updated before it expires.
 
 Minimal `.env` example:
 
 ```dotenv
-WHATSAPP_ACCESS_TOKEN=EAABxxxxxxxxxxxxxxxxxxxxx
-WHATSAPP_DEFAULT_API_PHONE_NUMBER_ID=123456789012345
-WHATSAPP_DEFAULT_DISPLAY_PHONE_NUMBER=+1234567890
-WHATSAPP_GRAPH_VERSION=v21.0
+WHATSAPP_APP_SECRET="d33555772181cc8eda34866603d86c77"
 WHATSAPP_DOWNLOAD_DISK=public
 ```
 

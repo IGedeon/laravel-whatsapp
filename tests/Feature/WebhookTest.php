@@ -24,6 +24,12 @@ function getWebhookTextPayloadArray(): array
     return json_decode(getWebhookTextPayloadRaw(), true);
 }
 
+beforeEach(function () {
+    ApiPhoneNumber::factory()->create([
+        'whatsapp_id' => 'test-phone-number-id',
+    ]);
+});
+
 it('can receive a text message via webhook', function () {
     Event::fake();
     $payload = getWebhookTextPayloadArray();
@@ -66,7 +72,11 @@ it('uses custom contact model if configured', function () {
     $this->withoutMiddleware(VerifyMetaSignature::class);
     $this->postJson('/whatsapp/webhook', $payload);
 
-    expect(CustomContactForTest::$customUsed)->toBeTrue();
+    $stored = \LaravelWhatsApp\Models\WhatsAppMessage::first();
+
+    expect($stored)->not->toBeNull();
+    expect($stored->contact)->not->toBeNull();
+    expect($stored->contact)->toBeInstanceOf(CustomContactForTest::class);
 });
 
 it('can recieve a image message via webhook', function () {
@@ -134,13 +144,13 @@ it('can mark a message as read', function () {
         '*' => Http::response(['messages' => [['id' => 'any-id']]], 200),
     ]);
 
-    $service = new \LaravelWhatsApp\Services\WhatsAppMessageService;
+    $service = new \LaravelWhatsApp\Services\WhatsAppService;
     $service->markAsRead($message);
 
     // Estado del modelo
     expect($message->status)->toBe(MessageStatus::READ);
 
-    $expectedUrl = config('whatsapp.base_url').'/'.config('whatsapp.graph_version').'/'.$apiPhoneNumber->phone_number_id.'/messages';
+    $expectedUrl = config('whatsapp.base_url').'/'.config('whatsapp.graph_version').'/'.$apiPhoneNumber->whatsapp_id.'/messages';
 
     // Asegurar que se envió exactamente una petición
     Http::assertSentCount(1);
@@ -153,7 +163,7 @@ it('can mark a message as read', function () {
             $request->url() === $expectedUrl &&
             $request->method() === 'POST' &&
             $request->hasHeader('Authorization') &&
-            str_contains($request->header('Authorization')[0], $message->apiPhoneNumber->access_token) &&
+            str_contains($request->header('Authorization')[0], $message->apiPhoneNumber->businessAccount->access_token) &&
             $json['messaging_product'] === 'whatsapp' &&
             $json['status'] === 'read' &&
             $json['message_id'] === $message->wa_message_id;
@@ -181,7 +191,10 @@ it('uses custom ApiPhoneNumber model if configured', function () {
     $this->withoutMiddleware(VerifyMetaSignature::class);
     $this->postJson('/whatsapp/webhook', $payload);
 
-    expect(CustomApiPhoneNumberForTest::$customUsed)->toBeTrue();
+    $stored = \LaravelWhatsApp\Models\WhatsAppMessage::first();
+    expect($stored)->not->toBeNull();
+    expect($stored->apiPhoneNumber)->not->toBeNull();
+    expect($stored->apiPhoneNumber)->toBeInstanceOf(CustomApiPhoneNumberForTest::class);
 });
 
 it('allows request with valid signature', function () {

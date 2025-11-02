@@ -13,10 +13,15 @@ return new class extends Migration
     {
         Schema::create('whatsapp_api_phone_numbers', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->nullable();
+            $table->foreignId('business_account_id')->constrained('whatsapp_business_accounts')->onDelete('cascade');
+            $table->string('verified_name')->nullable();
+            $table->string('code_verification_status')->nullable();
             $table->string('display_phone_number');
-            $table->string('phone_number_id')->unique();
-            $table->string('access_token')->nullable(true);
+            $table->string('platform_type')->nullable();
+            $table->string('quality_rating')->nullable();
+            $table->string('throughput_level')->nullable();
+            $table->json('webhook_configuration_application')->nullable();
+            $table->string('whatsapp_id')->unique();
             $table->timestamps();
         });
     }
