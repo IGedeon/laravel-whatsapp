@@ -13,27 +13,25 @@ Biblioteca para integrar la API de WhatsApp Cloud en aplicaciones Laravel. Carac
 ## Conceptos principales
 
 ```mermaid
-config:
-  layout: elk
 flowchart TB
  subgraph A["LOS POLLITOS COMPANY"]
     direction TB
-        APP["Meta App: WhatsApp AI"]
-        WEBHOOK["Global Webhook"]
-        SECRET["app_secret (security signature)"]
-        VERIFY["verify_token (subscription verification)"]
+        APP["App de Meta: WhatsApp AI"]
+        WEBHOOK["Webhook global"]
+        SECRET["app_secret (firma de seguridad)"]
+        VERIFY["verify_token (verificación de suscripción)"]
   end
- subgraph B1["Business Portfolio: Fast Food Company (NIT 90000001)"]
+ subgraph B1["Portafolio: Empresa 2"]
     direction TB
-        WABA1["WABA: WhatsApp Business Account"]
+        WABA1["Cuenta de WhatsApp"]
         SYSUSER1["System User"]
         TOKEN1["Access Token"]
         PHONE11["+57 3001111111 El Buen Comer"]
         PHONE12["+57 3002222222 Mata Hambre"]
   end
- subgraph B2C["Business Portfolio: Beverage Company (NIT 90000002)"]
+ subgraph B2C["Portafolio: Empresa 1"]
     direction TB
-        WABA2["WABA: WhatsApp Business Account"]
+        WABA2["Cuenta de WhatsApp"]
         SYSUSER2["System User"]
         TOKEN2["Access Token"]
         PHONE21["+57 3003333333 Refresquería Desértica"]
@@ -43,11 +41,12 @@ flowchart TB
     WABA1 --> PHONE11 & PHONE12
     SYSUSER2 --> TOKEN2
     WABA2 --> PHONE21
-    APP -. connects to .-> WABA1 & WABA2
-    TOKEN1 -. used to send messages .-> APP
-    TOKEN2 -. used to send messages .-> APP
-    WABA1 -. sends webhooks to .-> WEBHOOK
-    WABA2 -. sends webhooks to .-> WEBHOOK
+    APP -. se conecta a .-> WABA1 & WABA2
+    TOKEN1 -. usado para enviar .-> APP
+    TOKEN2 -. usado para enviar .-> APP
+    WABA1 -. envía webhooks a .-> WEBHOOK
+    WABA2 -. envía webhooks a .-> WEBHOOK
+
 ```
 
 1. **Portafolio comercial**  

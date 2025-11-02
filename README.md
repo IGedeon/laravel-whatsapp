@@ -16,41 +16,39 @@ Library to integrate WhatsApp Cloud API into Laravel applications. Features:
 ## Core concepts
 
 ```mermaid
-config:
-  layout: elk
 flowchart TB
- subgraph A["LOS POLLITOS COMPANY"]
-    direction TB
-        APP["Meta App: WhatsApp AI"]
-        WEBHOOK["Global Webhook"]
-        SECRET["app_secret (security signature)"]
-        VERIFY["verify_token (subscription verification)"]
-  end
- subgraph B1["Business Portfolio: Fast Food Company (NIT 90000001)"]
-    direction TB
-        WABA1["WABA: WhatsApp Business Account"]
-        SYSUSER1["System User"]
-        TOKEN1["Access Token"]
-        PHONE11["+57 3001111111 El Buen Comer"]
-        PHONE12["+57 3002222222 Mata Hambre"]
-  end
- subgraph B2C["Business Portfolio: Beverage Company (NIT 90000002)"]
-    direction TB
-        WABA2["WABA: WhatsApp Business Account"]
-        SYSUSER2["System User"]
-        TOKEN2["Access Token"]
-        PHONE21["+57 3003333333 Refresquería Desértica"]
-  end
-    APP --> WEBHOOK & SECRET & VERIFY
-    SYSUSER1 --> TOKEN1
-    WABA1 --> PHONE11 & PHONE12
-    SYSUSER2 --> TOKEN2
-    WABA2 --> PHONE21
-    APP -. connects to .-> WABA1 & WABA2
-    TOKEN1 -. used to send messages .-> APP
-    TOKEN2 -. used to send messages .-> APP
-    WABA1 -. sends webhooks to .-> WEBHOOK
-    WABA2 -. sends webhooks to .-> WEBHOOK
+ subgraph A["THE LITTLE CHICKS COMPANY"]
+		direction TB
+				APP["Meta App: WhatsApp AI"]
+				WEBHOOK["Global Webhook"]
+				SECRET["app_secret (security signature)"]
+				VERIFY["verify_token (subscription verification)"]
+	end
+ subgraph B1["Portfolio: Company 2"]
+		direction TB
+				WABA1["WABA: WhatsApp Business Account"]
+				SYSUSER1["System User"]
+				TOKEN1["Access Token"]
+				PHONE11["+57 3001111111 The Good Eats"]
+				PHONE12["+57 3002222222 Hunger Buster"]
+	end
+ subgraph B2C["Portfolio: Company 1"]
+		direction TB
+				WABA2["WABA: WhatsApp Business Account"]
+				SYSUSER2["System User"]
+				TOKEN2["Access Token"]
+				PHONE21["+57 3003333333 Desert Refreshments"]
+	end
+		APP --> WEBHOOK & SECRET & VERIFY
+		SYSUSER1 --> TOKEN1
+		WABA1 --> PHONE11 & PHONE12
+		SYSUSER2 --> TOKEN2
+		WABA2 --> PHONE21
+		APP -. connects to .-> WABA1 & WABA2
+		TOKEN1 -. used to send messages .-> APP
+		TOKEN2 -. used to send messages .-> APP
+		WABA1 -. sends webhooks to .-> WEBHOOK
+		WABA2 -. sends webhooks to .-> WEBHOOK
 ```
 
 1. **Business Portfolio**  
