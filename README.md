@@ -16,41 +16,74 @@ Library to integrate WhatsApp Cloud API into Laravel applications. Features:
 ## Core concepts
 
 ```mermaid
-config:
-  layout: elk
 flowchart TB
- subgraph A["LOS POLLITOS COMPANY"]
-    direction TB
-        APP["Meta App: WhatsApp AI"]
-        WEBHOOK["Global Webhook"]
-        SECRET["app_secret (security signature)"]
-        VERIFY["verify_token (subscription verification)"]
-  end
- subgraph B1["Business Portfolio: Fast Food Company (NIT 90000001)"]
-    direction TB
-        WABA1["WABA: WhatsApp Business Account"]
-        SYSUSER1["System User"]
-        TOKEN1["Access Token"]
-        PHONE11["+57 3001111111 El Buen Comer"]
-        PHONE12["+57 3002222222 Mata Hambre"]
-  end
- subgraph B2C["Business Portfolio: Beverage Company (NIT 90000002)"]
-    direction TB
-        WABA2["WABA: WhatsApp Business Account"]
-        SYSUSER2["System User"]
-        TOKEN2["Access Token"]
-        PHONE21["+57 3003333333 Refresquería Desértica"]
-  end
-    APP --> WEBHOOK & SECRET & VERIFY
-    SYSUSER1 --> TOKEN1
-    WABA1 --> PHONE11 & PHONE12
-    SYSUSER2 --> TOKEN2
-    WABA2 --> PHONE21
-    APP -. connects to .-> WABA1 & WABA2
-    TOKEN1 -. used to send messages .-> APP
-    TOKEN2 -. used to send messages .-> APP
-    WABA1 -. sends webhooks to .-> WEBHOOK
-    WABA2 -. sends webhooks to .-> WEBHOOK
+
+%% ====== YOUR ORGANIZATION ======
+subgraph ORG["The Little Chicks Company"]
+	direction TB
+
+	%% ====== META APP ======
+	subgraph META["Meta App: WhatsApp AI"]
+		direction TB
+		CONFIG["Configures Webhook URL using verify_token and app_secret"]
+	end
+
+	%% ====== BACKEND ======
+	subgraph BACKEND["Laravel Multitenant Backend"]
+		direction TB
+		subgraph BACK_VERIFY["Verification"]
+			VERIFY["• Responds to Meta GET\n• Validates verify_token
+			• Returns hub.challenge"]
+		end
+		subgraph BACK_EVENTS["Event Reception"]
+			EVENTS["• Receives POST from Meta App
+			• Validates X-Hub-Signature-256
+			• Processes incoming messages"]
+		end
+		subgraph BACK_SEND["Message Sending"]
+			SEND["• Uses client's Access Token"]
+		end
+	end
+end
+
+%% ====== CLIENTS ======
+subgraph CLIENTS["Clients"]
+	direction TB
+
+	subgraph CLIENT1["Portfolio: Company 1"]
+		direction TB
+		WABA1["WhatsApp Account (WABA)"]
+		SYSUSER1["System User (Client BM)"]
+		TOKEN1["Access Token"]
+		PHONE11["+57 3001111111 The Good Eats"]
+		WABA1 --> PHONE11
+		SYSUSER1 --> TOKEN1
+	end
+
+	subgraph CLIENT2["Portfolio: Company 2"]
+		direction TB
+		WABA2["WhatsApp Account (WABA)"]
+		SYSUSER2["System User (Client BM)"]
+		TOKEN2["Access Token"]
+		PHONE21["+57 3002222222 Desert Refreshments"]
+		WABA2 --> PHONE21
+		SYSUSER2 --> TOKEN2
+	end
+end
+
+%% Event flow (always through the configured App)
+WABA1 -. "Generates events (messages, statuses)" .-> CONFIG
+WABA2 -. "Generates events (messages, statuses)" .-> CONFIG
+CONFIG --"Sends to configured Webhook" --> BACK_EVENTS
+
+%% Initial webhook verification
+CONFIG -- Occurs only once during setup --> BACK_VERIFY
+
+%% Outgoing messaging (from Backend to Graph API)
+TOKEN1 -. "Bearer token (Graph API)" .-> BACK_SEND
+TOKEN2 -. "Bearer token (Graph API)" .-> BACK_SEND
+BACK_SEND -. "POST /{phone_number_id}/messages" .-> WABA1
+BACK_SEND -. "POST /{phone_number_id}/messages" .-> WABA2
 ```
 
 1. **Business Portfolio**  
