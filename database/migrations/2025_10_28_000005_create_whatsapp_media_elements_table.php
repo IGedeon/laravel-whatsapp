@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('filename')->nullable();
             $table->timestamp('downloaded_at')->nullable();
             $table->timestamp('uploaded_at')->nullable();
+            $table->timestamp('expired_at')->nullable();
             $table->timestamps();
         });
     }

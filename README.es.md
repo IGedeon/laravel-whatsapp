@@ -187,6 +187,7 @@ php artisan whatsapp:install --no-migrations
 | `WHATSAPP_MARK_AS_READ_QUEUE` | No | `default` | Nombre de la cola para el Job `MarkAsRead`. |
 | `WHATSAPP_DEFAULT_API_PHONE_NUMBER_ID` | Opcional | `null` | ID del número de teléfono empresarial (`phone_number_id`) usado por defecto al crear mensajes si no se proporciona explícitamente un `ApiPhoneNumber`. |
 | `WHATSAPP_DEFAULT_DISPLAY_PHONE_NUMBER` | Opcional | `null` | Número de teléfono de visualización por defecto (ejemplo: +1234567890). |
+| `WHATSAPP_EXPIRE_MEDIA_DAYS` | No | `15` | Número de días después de los cuales los medios subidos a WhatsApp expirarán. |
 
 Notas:
 

@@ -25,12 +25,14 @@ class MediaElement extends Model
         'filename',
         'downloaded_at',
         'uploaded_at',
+        'expired_at',
     ];
 
     protected $casts = [
         'mime_type' => MimeType::class,
         'downloaded_at' => 'datetime',
         'uploaded_at' => 'datetime',
+        'expired_at' => 'datetime',
     ];
 
     public function apiPhoneNumber()
@@ -118,9 +120,18 @@ class MediaElement extends Model
         return null;
     }
 
+    public function isExpired(): bool
+    {
+        if (! $this->expired_at) {
+            return false;
+        }
+
+        return Carbon::now()->greaterThan($this->expired_at);
+    }
+
     public function upload(string $filePath)
     {
-        if ($this->wa_media_id) {
+        if ($this->wa_media_id && ! $this->isExpired()) {
             return ['id' => $this->wa_media_id];
         }
 
@@ -185,10 +196,27 @@ class MediaElement extends Model
             $this->update([
                 'wa_media_id' => $responseBody['id'],
                 'uploaded_at' => now(),
+                'expired_at' => now()->addDays(config('whatsapp.expire_media_days', 15))->startOfDay(),
             ]);
         }
 
         return $responseBody;
+    }
+
+    public function getUrl(int $expiredMinutes = 60): string
+    {
+        $diskName = config('whatsapp.download_disk', 'local');
+
+        $downloadDisk = Storage::disk($diskName);
+
+        if (! $downloadDisk->exists($this->filename)) {
+            $this->download();
+        }
+
+        return $downloadDisk->temporaryUrl(
+            $this->filename,
+            now()->addMinutes($expiredMinutes)
+        );
     }
 
     public function getBase64ContentUrl()

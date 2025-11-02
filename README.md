@@ -188,6 +188,7 @@ php artisan whatsapp:install --no-migrations
 | `WHATSAPP_MEDIA_DOWNLOAD_QUEUE` | No | `default` | Name of the queue for the `DownloadMedia` Job. |
 | `WHATSAPP_MARK_AS_READ_QUEUE` | No | `default` | Name of the queue for the `MarkAsRead` Job. |
 | `WHATSAPP_DEFAULT_DISPLAY_PHONE_NUMBER` | Optional | `null` | Default display phone number (e.g., +1234567890). |
+| `WHATSAPP_EXPIRE_MEDIA_DAYS` | No | `15` | Number of days after which uploaded media is considered expired. |
 
 Notes:
 
