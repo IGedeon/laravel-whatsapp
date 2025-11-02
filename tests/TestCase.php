@@ -39,7 +39,6 @@ abstract class TestCase extends TestbenchTestCase
 		// Minimal required WhatsApp config values
 		$app['config']->set('whatsapp.verify_token', 'test-verify-token');
 		$app['config']->set('whatsapp.app_secret', 'test-app-secret');
-		$app['config']->set('whatsapp.access_token', 'fake-access-token');
 		$app['config']->set('whatsapp.queue.connection', 'sync');
 	}
 

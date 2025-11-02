@@ -61,11 +61,9 @@ class WhatsAppMessageService
      */
     public function sendTemplateMessage(Contact $to, string $templateName, string $languageCode, array $components = [], ?ApiPhoneNumber $from = null): bool
     {
-        if ($from === null) {
-            $from = ApiPhoneNumber::where('phone_number_id', config('whatsapp.default_api_phone_number_id'))->first();
-            if(!$from) {
-                throw new \InvalidArgumentException("ApiPhoneNumber default no encontrado. Configure whatsapp.default_api_phone_number_id");
-            }
+        if (!$from) {
+            $class = config("whatsapp.apiphone_model");
+            $from = $class::getDefault();
         }
 
         $message = \LaravelWhatsApp\Models\MessageTypes\Template::create($to, $from, $templateName, $languageCode, $components);
@@ -100,10 +98,10 @@ class WhatsAppMessageService
     protected static function apiRequest(ApiPhoneNumber $phoneNumber, array $data): array
     {
         $url = config("whatsapp.base_url") . "/" . config("whatsapp.graph_version") . "/" . $phoneNumber->phone_number_id . "/messages";
-        
-        $token = config("whatsapp.access_token");
 
-        if(!$token) {
+        $token = $phoneNumber->access_token;
+
+        if(empty($token)) {
             throw new \Exception("WhatsApp access token is not configured.");
         }
 
@@ -111,6 +109,7 @@ class WhatsAppMessageService
             'Authorization' => "Bearer $token",
             'Content-Type' => 'application/json',
         ])->post($url, $data);
+
 
         if ($response->failed()) {
             Log::error("WhatsApp API request failed", [

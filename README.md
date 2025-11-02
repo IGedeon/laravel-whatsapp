@@ -1,6 +1,8 @@
 # ![Tests](https://github.com/IGedeon/laravel-whatsapp/actions/workflows/test.yml/badge.svg)
 # Laravel WhatsApp Cloud API (Multi Number)
 
+[Versión en Español](./README.es.md)
+
 Library to integrate WhatsApp Cloud API into Laravel applications. Features:
 
 - Support for multiple numbers (Business Phone Numbers)
@@ -10,6 +12,58 @@ Library to integrate WhatsApp Cloud API into Laravel applications. Features:
 - Utilities to mark messages as read
 
 ---
+
+## Core concepts
+
+```mermaid
+config:
+  layout: elk
+flowchart TB
+ subgraph A["LOS POLLITOS COMPANY"]
+    direction TB
+        APP["Meta App: WhatsApp AI"]
+        WEBHOOK["Global Webhook"]
+        SECRET["app_secret (security signature)"]
+        VERIFY["verify_token (subscription verification)"]
+  end
+ subgraph B1["Business Portfolio: Fast Food Company (NIT 90000001)"]
+    direction TB
+        WABA1["WABA: WhatsApp Business Account"]
+        SYSUSER1["System User"]
+        TOKEN1["Access Token"]
+        PHONE11["+57 3001111111 El Buen Comer"]
+        PHONE12["+57 3002222222 Mata Hambre"]
+  end
+ subgraph B2C["Business Portfolio: Beverage Company (NIT 90000002)"]
+    direction TB
+        WABA2["WABA: WhatsApp Business Account"]
+        SYSUSER2["System User"]
+        TOKEN2["Access Token"]
+        PHONE21["+57 3003333333 Refresquería Desértica"]
+  end
+    APP --> WEBHOOK & SECRET & VERIFY
+    SYSUSER1 --> TOKEN1
+    WABA1 --> PHONE11 & PHONE12
+    SYSUSER2 --> TOKEN2
+    WABA2 --> PHONE21
+    APP -. connects to .-> WABA1 & WABA2
+    TOKEN1 -. used to send messages .-> APP
+    TOKEN2 -. used to send messages .-> APP
+    WABA1 -. sends webhooks to .-> WEBHOOK
+    WABA2 -. sends webhooks to .-> WEBHOOK
+```
+
+1. **Business Portfolio**  
+	The Business Portfolio is the set of companies managed in Meta Business. Here, system users are created and long-lived access tokens are obtained to send WhatsApp messages. Apps that will use the API are also linked in the portfolio.
+
+2. **WhatsApp Business Accounts (WABA)**  
+	A Business Portfolio can have multiple WhatsApp Business Accounts. Each account represents a company or business unit that manages its own numbers and messages.
+
+3. **Associated Phone Numbers**  
+	Each WhatsApp Business Account can have several verified phone numbers. These numbers are used to send and receive messages through the API.
+
+4. **Global Webhook**  
+	The App defines a single global webhook that receives all events and messages from different numbers and accounts. This webhook is configured in Meta and acts as the entry point to process incoming messages, notifications, and errors.
 
 ## Installation
 
@@ -135,13 +189,12 @@ php artisan whatsapp:install --no-migrations
 | `WHATSAPP_QUEUE_CONNECTION` | No | `sync` | Queue connection (see `queue.php`). E.g., `redis`, `database`, `sqs`. |
 | `WHATSAPP_MEDIA_DOWNLOAD_QUEUE` | No | `default` | Name of the queue for the `DownloadMedia` Job. |
 | `WHATSAPP_MARK_AS_READ_QUEUE` | No | `default` | Name of the queue for the `MarkAsRead` Job. |
-| `WHATSAPP_DEFAULT_API_PHONE_NUMBER_ID` | Optional | `null` | Business phone number ID (`phone_number_id`) used by default when creating messages if an `ApiPhoneNumber` is not explicitly provided. |
 | `WHATSAPP_DEFAULT_DISPLAY_PHONE_NUMBER` | Optional | `null` | Default display phone number (e.g., +1234567890). |
 
 Notes:
 
 1. For outgoing messages, you need at least one record in the `whatsapp_api_phone_numbers` table (see migration) with its real `phone_number_id` obtained from the Meta panel.
-2. If you set `WHATSAPP_DEFAULT_API_PHONE_NUMBER_ID`, the `WhatsAppMessage` model will try to use it automatically when you call `initMessage()` without passing a number.
+2. If there is only one `ApiPhoneNumber` record, the `WhatsAppMessage` model will try to use it automatically when you call `initMessage()` without passing a number.
 3. Make sure your `WHATSAPP_ACCESS_TOKEN` is long-lived and updated before it expires.
 
 Minimal `.env` example:

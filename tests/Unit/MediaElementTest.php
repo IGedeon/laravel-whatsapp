@@ -16,7 +16,6 @@ beforeEach(function () {
     // Mock config values
     Config::set('whatsapp.base_url', 'https://graph.facebook.com');
     Config::set('whatsapp.graph_version', 'v18.0');
-    Config::set('whatsapp.access_token', 'test_token');
     Config::set('whatsapp.download_disk', 'local');
 });
 

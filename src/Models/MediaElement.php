@@ -46,7 +46,7 @@ class MediaElement extends Model
     public function getInfo()
     {
         $url = config('whatsapp.base_url') . '/' . config('whatsapp.graph_version') . '/' . $this->wa_media_id . '?phone_number_id=' . $this->apiPhoneNumber->phone_number_id;
-        $token = config('whatsapp.access_token');
+        $token = $this->apiPhoneNumber->access_token;
 
         $response = Http::retry(times: 3, sleepMilliseconds: 100, when:null, throw:false)->withHeaders([
             'Authorization' => "Bearer $token",
@@ -88,7 +88,7 @@ class MediaElement extends Model
         }
 
         if ($this->url) {
-            $downloadResponse = Http::withToken(config('whatsapp.access_token'))
+            $downloadResponse = Http::withToken($this->apiPhoneNumber->access_token)
                 ->get($this->url);
 
             if(!$downloadResponse->ok()){
@@ -144,7 +144,7 @@ class MediaElement extends Model
         file_put_contents($tempPath, $fileContent);
 
         $url = config('whatsapp.base_url') . '/' . config('whatsapp.graph_version') . '/' . $this->apiPhoneNumber->phone_number_id . '/media';
-        $token = config('whatsapp.access_token');
+        $token = $this->apiPhoneNumber->access_token;
         
         $response = Http::withToken($token)->asMultipart()->post($url, [
             [

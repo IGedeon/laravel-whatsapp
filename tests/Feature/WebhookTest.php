@@ -117,22 +117,12 @@ it('can recieve a image message via webhook', function () {
 
 it('can mark a message as read', function () {
     // Preparar número
-    $apiPhoneNumber = ApiPhoneNumber::create([
-        'name' => 'Test Number',
-        'phone_number_id' => '1234567890',
-        'display_phone_number' => '15551234567'
-    ]);
+    $apiPhoneNumber = ApiPhoneNumber::factory()->create();
 
-    // Mensaje a marcar como leído
-    $message = \LaravelWhatsApp\Models\WhatsAppMessage::create([
+    $message = WhatsAppMessage::factory()->create([
         'api_phone_number_id' => $apiPhoneNumber->id,
-        'contact_id' => null,
+        'status' => MessageStatus::DELIVERED,
         'direction' => \LaravelWhatsApp\Enums\MessageDirection::INCOMING,
-        'wa_message_id' => 'test-read-message-id',
-        'timestamp' => now(),
-        'type' => \LaravelWhatsApp\Enums\MessageType::TEXT,
-        'content' => json_encode(['body' => 'Test message']),
-        'status' => \LaravelWhatsApp\Enums\MessageStatus::DELIVERED,
     ]);
 
     // Reemplazar el fake global para poder hacer aserciones detalladas
@@ -152,16 +142,16 @@ it('can mark a message as read', function () {
     Http::assertSentCount(1);
 
     // Asegurar que la petición tiene lo esperado
-    Http::assertSent(function (Request $request) use ($expectedUrl) {
+    Http::assertSent(function (Request $request) use ($expectedUrl, $message) {
         $json = $request->data(); // body enviado como array
         return
             $request->url() === $expectedUrl &&
             $request->method() === 'POST' &&
             $request->hasHeader('Authorization') &&
-            str_contains($request->header('Authorization')[0], 'fake-access-token') &&
+            str_contains($request->header('Authorization')[0], $message->apiPhoneNumber->access_token) &&
             $json['messaging_product'] === 'whatsapp' &&
             $json['status'] === 'read' &&
-            $json['message_id'] === 'test-read-message-id';
+            $json['message_id'] === $message->wa_message_id;
     });
 });
 

@@ -89,11 +89,10 @@ class WhatsAppMessage extends Model
         $this->contact_id = $to->id;
 
         if (!$from) {
-            $from = ApiPhoneNumber::where('phone_number_id', config('whatsapp.default_api_phone_number_id'))->first();
-            if (!$from) {
-                throw new \InvalidArgumentException("ApiPhoneNumber could not be determined. Please provide the 'from' parameter or set a default_api_phone_number_id in the config.");
-            }
+            $class = config("whatsapp.apiphone_model");
+            $from = $class::getDefault();
         }
+        
         $this->api_phone_number_id = $from->id;
 
         foreach ($contentProps as $key => $value) {

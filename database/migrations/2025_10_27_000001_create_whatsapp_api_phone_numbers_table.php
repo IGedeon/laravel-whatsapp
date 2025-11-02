@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->string('name')->nullable();
             $table->string('display_phone_number');
             $table->string('phone_number_id')->unique();
+            $table->string('access_token')->nullable(true);
             $table->timestamps();
         });
     }

@@ -17,23 +17,14 @@ uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 beforeEach(function () {
     Config::set('whatsapp.base_url', 'https://graph.facebook.com');
     Config::set('whatsapp.graph_version', 'v18.0');
-    Config::set('whatsapp.access_token', 'test_token');
     Config::set('whatsapp.download_disk', 'local');
-    Config::set('whatsapp.default_api_phone_number_id', '123456789');
 });
 
 it('can create a complete media workflow from message to upload', function () {
     // Create test data
-    $apiPhoneNumber = ApiPhoneNumber::create([
-        'phone_number_id' => '123456789',
-        'display_phone_number' => '+1234567890',
-        'phone_number' => '+1234567890'
-    ]);
+    $apiPhoneNumber = ApiPhoneNumber::factory()->create();
     
-    $contact = Contact::create([
-        'wa_id' => '0987654321',
-        'name' => 'Test Contact'
-    ]);
+    $contact = Contact::factory()->create();
 
     // Create a WhatsApp message with media
     $message = new WhatsAppMessage();
@@ -68,12 +59,8 @@ it('can create a complete media workflow from message to upload', function () {
 
 it('can handle media upload', function () {
     Storage::fake('local');
-    
-    $apiPhoneNumber = ApiPhoneNumber::create([
-        'phone_number_id' => '123456789',
-        'display_phone_number' => '+1234567890',
-        'phone_number' => '+1234567890'
-    ]);
+
+    $apiPhoneNumber = ApiPhoneNumber::factory()->create();
 
     // Mock the upload API call
     Http::fake([
@@ -102,16 +89,9 @@ it('can handle media upload', function () {
 });
 
 it('handles webhook creation of media elements correctly', function () {
-    $apiPhoneNumber = ApiPhoneNumber::create([
-        'phone_number_id' => '123456789',
-        'display_phone_number' => '+1234567890',
-        'phone_number' => '+1234567890'
-    ]);
-    
-    $contact = Contact::create([
-        'wa_id' => '0987654321',
-        'name' => 'Test Contact'
-    ]);
+    $apiPhoneNumber = ApiPhoneNumber::factory()->create();
+
+    $contact = Contact::factory()->create();
 
     // Simulate webhook controller creating message with media
     $message = new WhatsAppMessage();
@@ -150,11 +130,7 @@ it('can generate base64 content URLs for downloaded media', function () {
     Storage::disk('local')->put('test_image.jpg', base64_decode('/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB'));
 
     // Create ApiPhoneNumber first to satisfy foreign key
-    $apiPhoneNumber = ApiPhoneNumber::create([
-        'phone_number_id' => '123456789',
-        'display_phone_number' => '+1234567890',
-        'phone_number' => '+1234567890'
-    ]);
+    $apiPhoneNumber = ApiPhoneNumber::factory()->create();
 
     $mediaElement = MediaElement::create([
         'api_phone_number_id' => $apiPhoneNumber->id,

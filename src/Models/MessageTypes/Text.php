@@ -25,11 +25,9 @@ class Text extends WhatsAppMessage
         if ($to === null) {
             throw new \InvalidArgumentException("Contact 'to' must be provided.");
         }
-        if ($from === null) {
-            $from = ApiPhoneNumber::where('phone_number_id', config('whatsapp.default_api_phone_number_id'))->first();
-            if (!$from) {
-                throw new \InvalidArgumentException("ApiPhoneNumber could not be determined. Please provide the 'from' parameter or set a default_api_phone_number_id in el config.");
-            }
+        if (!$from) {
+            $class = config("whatsapp.apiphone_model");
+            $from = $class::getDefault();
         }
         $this->initMessage(MessageType::TEXT, MessageDirection::OUTGOING, $to, $from, []);
         $this->setContentProperty('body', $body);
