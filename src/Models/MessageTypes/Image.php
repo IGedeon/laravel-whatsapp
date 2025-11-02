@@ -2,19 +2,17 @@
 
 namespace LaravelWhatsApp\Models\MessageTypes;
 
-
-use Illuminate\Support\Arr;
-use LaravelWhatsApp\Enums\MessageType;
-use LaravelWhatsApp\Enums\MessageDirection;
-use LaravelWhatsApp\Models\WhatsAppMessage;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use LaravelWhatsApp\Models\Contact;
+use LaravelWhatsApp\Enums\MessageDirection;
+use LaravelWhatsApp\Enums\MessageType;
 use LaravelWhatsApp\Models\ApiPhoneNumber;
+use LaravelWhatsApp\Models\Contact;
+use LaravelWhatsApp\Models\WhatsAppMessage;
 
 class Image extends WhatsAppMessage
 {
-    protected $appends = ['caption','waId','url'];
-    
+    protected $appends = ['caption', 'waId', 'url'];
+
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
@@ -25,7 +23,7 @@ class Image extends WhatsAppMessage
         if (trim($mediaUrl) === '') {
             throw new \InvalidArgumentException('media_url cannot be empty');
         }
-        $instance = new self();
+        $instance = new self;
         $instance->initMessage(
             MessageType::IMAGE,
             MessageDirection::OUTGOING,
@@ -36,6 +34,7 @@ class Image extends WhatsAppMessage
                 'caption' => $caption,
             ]
         );
+
         return $instance;
     }
 
@@ -44,7 +43,7 @@ class Image extends WhatsAppMessage
         if (trim($mediaId) === '') {
             throw new \InvalidArgumentException('media_id cannot be empty');
         }
-        $instance = new self();
+        $instance = new self;
         $instance->initMessage(
             MessageType::IMAGE,
             MessageDirection::OUTGOING,
@@ -55,6 +54,7 @@ class Image extends WhatsAppMessage
                 'caption' => $caption,
             ]
         );
+
         return $instance;
     }
 

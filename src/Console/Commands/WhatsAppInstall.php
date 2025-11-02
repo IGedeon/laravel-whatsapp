@@ -4,7 +4,6 @@ namespace LaravelWhatsApp\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\File;
 
 class WhatsAppInstall extends Command
 {
@@ -29,7 +28,7 @@ class WhatsAppInstall extends Command
         $publishedAnything = false;
 
         // Publish config
-        if (!$this->option('no-config')) {
+        if (! $this->option('no-config')) {
             $this->publishTag('whatsapp-config');
             $publishedAnything = true;
         } else {
@@ -38,7 +37,7 @@ class WhatsAppInstall extends Command
         }
 
         // Publish migrations
-        if (!$this->option('no-migrations')) {
+        if (! $this->option('no-migrations')) {
             $this->publishTag('whatsapp-migrations');
             $publishedAnything = true;
         } else {
@@ -46,7 +45,7 @@ class WhatsAppInstall extends Command
             $this->appendBuffer('Skipping migrations publish');
         }
 
-        if (!$publishedAnything) {
+        if (! $publishedAnything) {
             $this->warn('Nothing was published. Use without --no-* options to publish resources.');
             $this->appendBuffer('Nothing was published');
         }
@@ -65,8 +64,8 @@ class WhatsAppInstall extends Command
         }
 
         $this->newLine();
-    $this->info('Installation complete. Next steps:');
-    $this->appendBuffer('Installation complete');
+        $this->info('Installation complete. Next steps:');
+        $this->appendBuffer('Installation complete');
         $this->line(' 1. Set environment variables (WHATSAPP_ACCESS_TOKEN, WHATSAPP_VERIFY_TOKEN, etc).');
         $this->line(' 2. Configure listener in config/whatsapp.php if you need custom behavior.');
         $this->line(' 3. Point your webhook route to the package route group (see README).');

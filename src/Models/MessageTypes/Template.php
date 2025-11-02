@@ -31,27 +31,27 @@ class Template extends WhatsAppMessage
     /**
      * Estos atributos derivados facilitan acceder a partes del contenido.
      */
-    protected $appends = ['name','languageCode','components'];
+    protected $appends = ['name', 'languageCode', 'components'];
 
     /**
      * Crea una instancia lista para ser enviada.
      *
-     * @param Contact $to Contacto destino (modelo interno con wa_id)
-     * @param ApiPhoneNumber $from Número API desde el cual se envía
-     * @param string $name Nombre de la plantilla registrada en Meta
-     * @param string $languageCode Código de idioma (ej: "es_MX", "en_US")
-     * @param array $components Array de componentes conforme a la API
+     * @param  Contact  $to  Contacto destino (modelo interno con wa_id)
+     * @param  ApiPhoneNumber  $from  Número API desde el cual se envía
+     * @param  string  $name  Nombre de la plantilla registrada en Meta
+     * @param  string  $languageCode  Código de idioma (ej: "es_MX", "en_US")
+     * @param  array  $components  Array de componentes conforme a la API
      */
     public static function create(Contact $to, ApiPhoneNumber $from, string $name, string $languageCode, array $components = []): self
     {
-        if(trim($name) === '') {
+        if (trim($name) === '') {
             throw new \InvalidArgumentException('Template name cannot be empty');
         }
-        if(trim($languageCode) === '') {
+        if (trim($languageCode) === '') {
             throw new \InvalidArgumentException('Template language code cannot be empty');
         }
 
-        $instance = new self();
+        $instance = new self;
         $instance->initMessage(
             MessageType::TEMPLATE,
             MessageDirection::OUTGOING,
@@ -59,10 +59,11 @@ class Template extends WhatsAppMessage
             $from,
             [
                 'name' => $name,
-                'language' => [ 'code' => $languageCode ],
+                'language' => ['code' => $languageCode],
                 'components' => $components,
             ]
         );
+
         return $instance;
     }
 
@@ -77,6 +78,7 @@ class Template extends WhatsAppMessage
         return Attribute::make(
             get: function () {
                 $language = $this->content['language'] ?? [];
+
                 return $language['code'] ?? '';
             },
         );

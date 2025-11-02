@@ -1,9 +1,8 @@
 <?php
 
+use Illuminate\Support\Facades\Bus;
 use LaravelWhatsApp\Jobs\MarkAsRead;
 use LaravelWhatsApp\Models\WhatsAppMessage;
-use Illuminate\Support\Facades\Bus;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
@@ -19,5 +18,4 @@ describe('MarkAsRead Job', function () {
         });
     });
 
-    
 });

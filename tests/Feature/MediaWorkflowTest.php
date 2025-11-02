@@ -1,16 +1,15 @@
 <?php
 
-use LaravelWhatsApp\Models\MediaElement;
-use LaravelWhatsApp\Models\WhatsAppMessage;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
+use LaravelWhatsApp\Enums\MessageDirection;
+use LaravelWhatsApp\Enums\MessageType;
+use LaravelWhatsApp\Enums\MimeType;
 use LaravelWhatsApp\Models\ApiPhoneNumber;
 use LaravelWhatsApp\Models\Contact;
-use LaravelWhatsApp\Enums\MimeType;
-use LaravelWhatsApp\Enums\MessageType;
-use LaravelWhatsApp\Enums\MessageDirection;
-use LaravelWhatsApp\Models\MessageTypes\Image;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Config;
+use LaravelWhatsApp\Models\MediaElement;
+use LaravelWhatsApp\Models\WhatsAppMessage;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
@@ -23,11 +22,11 @@ beforeEach(function () {
 it('can create a complete media workflow from message to upload', function () {
     // Create test data
     $apiPhoneNumber = ApiPhoneNumber::factory()->create();
-    
+
     $contact = Contact::factory()->create();
 
     // Create a WhatsApp message with media
-    $message = new WhatsAppMessage();
+    $message = new WhatsAppMessage;
     $message->initMessage(
         MessageType::IMAGE,
         MessageDirection::INCOMING,
@@ -42,7 +41,7 @@ it('can create a complete media workflow from message to upload', function () {
         'api_phone_number_id' => $apiPhoneNumber->id,
         'wa_media_id' => 'incoming_media_id',
         'mime_type' => MimeType::IMAGE_JPEG,
-        'filename' => 'test_image.jpg'
+        'filename' => 'test_image.jpg',
     ]);
 
     expect($mediaElement->mediable_type)->toBe(WhatsAppMessage::class)
@@ -65,17 +64,17 @@ it('can handle media upload', function () {
     // Mock the upload API call
     Http::fake([
         '*' => Http::response([
-            'id' => 'uploaded_media_id'
-        ], 200)
+            'id' => 'uploaded_media_id',
+        ], 200),
     ]);
 
     // Test upload
     $newMediaElement = MediaElement::create([
         'api_phone_number_id' => $apiPhoneNumber->id,
-        'mediable_type' => 'AnotherModel', 
+        'mediable_type' => 'AnotherModel',
         'mediable_id' => 2,
         'mime_type' => MimeType::IMAGE_JPEG,
-        'filename' => 'to_upload.jpg'
+        'filename' => 'to_upload.jpg',
     ]);
 
     // Put the file to upload
@@ -94,7 +93,7 @@ it('handles webhook creation of media elements correctly', function () {
     $contact = Contact::factory()->create();
 
     // Simulate webhook controller creating message with media
-    $message = new WhatsAppMessage();
+    $message = new WhatsAppMessage;
     $message->initMessage(
         MessageType::IMAGE,
         MessageDirection::INCOMING,
@@ -103,8 +102,8 @@ it('handles webhook creation of media elements correctly', function () {
         [
             'image' => [
                 'id' => 'webhook_media_id',
-                'caption' => 'Image from webhook'
-            ]
+                'caption' => 'Image from webhook',
+            ],
         ]
     );
     $message->save();
@@ -137,7 +136,7 @@ it('can generate base64 content URLs for downloaded media', function () {
         'mediable_type' => 'TestModel',
         'mediable_id' => 1,
         'filename' => 'test_image.jpg',
-        'mime_type' => MimeType::IMAGE_JPEG
+        'mime_type' => MimeType::IMAGE_JPEG,
     ]);
 
     $base64Url = $mediaElement->getBase64ContentUrl();

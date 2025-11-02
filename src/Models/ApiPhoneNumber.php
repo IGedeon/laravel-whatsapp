@@ -1,9 +1,9 @@
 <?php
+
 namespace LaravelWhatsApp\Models;
 
-use Illuminate\Database\Eloquent\Model;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class ApiPhoneNumber extends Model
 {
@@ -26,11 +26,11 @@ class ApiPhoneNumber extends Model
     {
         $phoneNumbers = self::all();
 
-        if($phoneNumbers->isEmpty()){
+        if ($phoneNumbers->isEmpty()) {
             throw new \InvalidArgumentException("No ApiPhoneNumber records found. 'from' must be provided.");
         }
 
-        if($phoneNumbers->count() > 1){
+        if ($phoneNumbers->count() > 1) {
             throw new \InvalidArgumentException("ApiPhoneNumber 'from' must be provided when multiple phone numbers exist.");
         }
 

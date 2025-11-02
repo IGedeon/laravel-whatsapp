@@ -1,8 +1,9 @@
 <?php
+
 namespace Database\Factories;
 
-use LaravelWhatsApp\Models\ApiPhoneNumber;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use LaravelWhatsApp\Models\ApiPhoneNumber;
 
 class ApiPhoneNumberFactory extends Factory
 {
@@ -16,5 +17,5 @@ class ApiPhoneNumberFactory extends Factory
             'access_token' => $this->faker->uuid,
             'phone_number_id' => $this->faker->numerify('123456789012345'),
         ];
-            }
-        }
+    }
+}

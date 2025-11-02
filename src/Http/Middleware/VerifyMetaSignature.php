@@ -18,7 +18,7 @@ class VerifyMetaSignature
             throw new \Exception('App secret not configured in whatsapp.app_secret');
         }
 
-        if (!$sigHeader) {
+        if (! $sigHeader) {
             return response('Missing signature', 401);
         }
 
@@ -32,11 +32,12 @@ class VerifyMetaSignature
         $calc = hash_hmac('sha256', $raw, $appSecret);
 
         // Comparación constante (evita timing attacks)
-        if (!hash_equals($calc, $received)) {
+        if (! hash_equals($calc, $received)) {
             Log::warning('Invalid webhook signature', [
                 'calculated' => $calc,
                 'received' => $received,
             ]);
+
             return response('Invalid signature', 401);
         }
 

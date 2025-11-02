@@ -1,11 +1,11 @@
 <?php
 
-use LaravelWhatsApp\Models\MessageTypes\Text;
-use LaravelWhatsApp\Models\MessageTypes\Image;
-use LaravelWhatsApp\Models\Contact;
-use LaravelWhatsApp\Models\ApiPhoneNumber;
-use LaravelWhatsApp\Enums\MessageType;
 use LaravelWhatsApp\Enums\MessageDirection;
+use LaravelWhatsApp\Enums\MessageType;
+use LaravelWhatsApp\Models\ApiPhoneNumber;
+use LaravelWhatsApp\Models\Contact;
+use LaravelWhatsApp\Models\MessageTypes\Image;
+use LaravelWhatsApp\Models\MessageTypes\Text;
 
 it('inicializa mensaje de texto correctamente', function () {
     $contact = new Contact(['id' => 1]);
@@ -50,8 +50,8 @@ it('inicializa mensaje de imagen con ID', function () {
 
 it('has mediable relationship using morphOne', function () {
     // Test that the method exists and is a relationship
-    $msg = new \LaravelWhatsApp\Models\WhatsAppMessage();
-    
+    $msg = new \LaravelWhatsApp\Models\WhatsAppMessage;
+
     expect(method_exists($msg, 'media'))->toBeTrue();
 });
 
@@ -62,7 +62,7 @@ it('can access content properties correctly', function () {
 
     // Test setting and getting content properties
     $msg->setContentProperty('custom_field', 'custom_value');
-    
+
     expect($msg->getContentProperty('custom_field'))->toBe('custom_value')
         ->and($msg->getContentProperty('nonexistent'))->toBeNull();
 });
@@ -70,9 +70,9 @@ it('can access content properties correctly', function () {
 it('can create message with null parameters', function () {
     $contact = new Contact(['id' => 1]);
     $apiPhone = new ApiPhoneNumber(['id' => 2]);
-    
-    $msg = new \LaravelWhatsApp\Models\WhatsAppMessage();
-    
+
+    $msg = new \LaravelWhatsApp\Models\WhatsAppMessage;
+
     expect(function () use ($msg, $contact, $apiPhone) {
         $msg->initMessage(
             MessageType::TEXT,
@@ -82,7 +82,7 @@ it('can create message with null parameters', function () {
             ['text' => ['body' => 'Test']]
         );
     })->not->toThrow(\Exception::class);
-    
+
     expect($msg->direction)->toBe(MessageDirection::OUTGOING);
 });
 

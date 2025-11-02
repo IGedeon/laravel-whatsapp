@@ -3,13 +3,12 @@
 namespace LaravelWhatsApp\Jobs;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Queue\InteractsWithQueue;
-use LaravelWhatsApp\Models\MediaElement;
-use LaravelWhatsApp\Events\WhatsAppMessageReceived;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;     
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use LaravelWhatsApp\Events\WhatsAppMessageReceived;
+use LaravelWhatsApp\Models\MediaElement;
 
 class DownloadMedia implements ShouldQueue
 {
@@ -31,7 +30,7 @@ class DownloadMedia implements ShouldQueue
         $this->whatsAppMedia->download();
 
         // Disparar evento indicando que el mensaje ya tiene la media descargada
-        if($this->whatsAppMedia->mediable){
+        if ($this->whatsAppMedia->mediable) {
             WhatsAppMessageReceived::dispatch(
                 $this->whatsAppMedia->mediable,
                 $this->whatsAppMedia,

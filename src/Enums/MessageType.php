@@ -17,7 +17,7 @@ enum MessageType: string
     case STICKER = 'sticker';
     case TEXT = 'text';
     case VIDEO = 'video';
-    
+
     case ERRORS = 'errors';
     case SYSTEM = 'system';
     case UNSUPPORTED = 'unsupported';
@@ -25,7 +25,7 @@ enum MessageType: string
 
     public function isSupported(): bool
     {
-        return match($this) {
+        return match ($this) {
             self::ERRORS,
             self::SYSTEM,
             self::UNSUPPORTED,
@@ -36,7 +36,7 @@ enum MessageType: string
 
     public function isMedia(): bool
     {
-        return match($this) {
+        return match ($this) {
             self::AUDIO,
             self::DOCUMENT,
             self::IMAGE,

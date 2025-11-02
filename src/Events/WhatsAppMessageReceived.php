@@ -2,11 +2,11 @@
 
 namespace LaravelWhatsApp\Events;
 
-use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use LaravelWhatsApp\Models\WhatsAppMessage;
 use LaravelWhatsApp\Models\MediaElement;
+use LaravelWhatsApp\Models\WhatsAppMessage;
 
 class WhatsAppMessageReceived
 {

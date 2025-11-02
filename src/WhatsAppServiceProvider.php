@@ -2,7 +2,6 @@
 
 namespace LaravelWhatsApp;
 
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use LaravelWhatsApp\Events\WhatsAppMessageReceived;
@@ -13,9 +12,9 @@ class WhatsAppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/Config/whatsapp.php', 'whatsapp');
-        
-        $this->app->singleton(WhatsAppMessageService::class, function($app){
-            return new WhatsAppMessageService();
+
+        $this->app->singleton(WhatsAppMessageService::class, function ($app) {
+            return new WhatsAppMessageService;
         });
     }
 

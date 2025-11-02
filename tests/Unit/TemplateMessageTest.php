@@ -1,18 +1,18 @@
 <?php
 
-use LaravelWhatsApp\Models\MessageTypes\Template;
 use LaravelWhatsApp\Models\ApiPhoneNumber;
 use LaravelWhatsApp\Models\Contact;
+use LaravelWhatsApp\Models\MessageTypes\Template;
 
-it('builds a template message payload structure', function() {
+it('builds a template message payload structure', function () {
     // Usar instancias in-memory sin conexión a BD
     $contact = new Contact([
         'wa_id' => '5215550001111',
-        'name' => 'Contacto Test'
+        'name' => 'Contacto Test',
     ]);
     $apiPhone = new ApiPhoneNumber([
         'label' => 'default',
-        'phone_number_id' => '1234567890'
+        'phone_number_id' => '1234567890',
     ]);
 
     $components = [
@@ -21,8 +21,8 @@ it('builds a template message payload structure', function() {
             'parameters' => [
                 ['type' => 'text', 'text' => 'Juan'],
                 ['type' => 'text', 'text' => 'Pedido #1234'],
-            ]
-        ]
+            ],
+        ],
     ];
 
     $message = Template::create($contact, $apiPhone, 'order_followup', 'es_MX', $components);

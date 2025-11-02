@@ -1,17 +1,17 @@
 <?php
+
 namespace LaravelWhatsApp\Models;
 
-use Illuminate\Support\Arr;
-use LaravelWhatsApp\Enums\MessageType;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Support\Arr;
 use LaravelWhatsApp\Enums\MessageDirection;
-use LaravelWhatsApp\Models\MessageTypes\Text;
-use LaravelWhatsApp\Models\MessageTypes\Image;
-use LaravelWhatsApp\Services\WhatsAppMessageService;
-
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use LaravelWhatsApp\Enums\MessageStatus;
+use LaravelWhatsApp\Enums\MessageType;
+use LaravelWhatsApp\Models\MessageTypes\Image;
+use LaravelWhatsApp\Models\MessageTypes\Text;
+use LaravelWhatsApp\Services\WhatsAppMessageService;
 
 class WhatsAppMessage extends Model
 {
@@ -45,7 +45,7 @@ class WhatsAppMessage extends Model
         'status_timestamp' => 'datetime',
         'context' => 'array',
         'content' => 'array',
-        'status' => MessageStatus::class
+        'status' => MessageStatus::class,
     ];
 
     public function getContentAttribute($value)
@@ -55,8 +55,10 @@ class WhatsAppMessage extends Model
         }
         if (is_string($value)) {
             $decoded = json_decode($value, true);
+
             return $decoded ?: [];
         }
+
         return [];
     }
 
@@ -83,16 +85,16 @@ class WhatsAppMessage extends Model
         $this->type = $type;
         $this->direction = $direction ?? MessageDirection::OUTGOING;
 
-        if (!$to) {
+        if (! $to) {
             throw new \InvalidArgumentException("Contact 'to' must be provided.");
         }
         $this->contact_id = $to->id;
 
-        if (!$from) {
-            $class = config("whatsapp.apiphone_model");
+        if (! $from) {
+            $class = config('whatsapp.apiphone_model');
             $from = $class::getDefault();
         }
-        
+
         $this->api_phone_number_id = $from->id;
 
         foreach ($contentProps as $key => $value) {
@@ -117,9 +119,10 @@ class WhatsAppMessage extends Model
         // If Laravel introspects mutators and invokes without arguments, return a trivial attribute
         if ($key === null) {
             return \Illuminate\Database\Eloquent\Casts\Attribute::make(
-                get: fn($value) => $value,
+                get: fn ($value) => $value,
             );
         }
+
         return \Illuminate\Database\Eloquent\Casts\Attribute::make(
             get: function ($value, array $attributes) use ($key, $default) {
                 $raw = $attributes['content'] ?? [];
@@ -131,6 +134,7 @@ class WhatsAppMessage extends Model
                         $raw = [];
                     }
                 }
+
                 return Arr::get(is_array($raw) ? $raw : [], $key, $default);
             },
         );
@@ -144,12 +148,13 @@ class WhatsAppMessage extends Model
     public function getContentProperty($key)
     {
         $content = $this->content;
-        if (!$content) {
+        if (! $content) {
             return null;
         }
         if (is_string($content)) {
             $content = json_decode($content, true);
         }
+
         return Arr::get($content, $key);
     }
 
@@ -161,6 +166,7 @@ class WhatsAppMessage extends Model
         }
         Arr::set($content, $key, $value);
         $this->attributes['content'] = json_encode($content);
+
         return $this;
     }
 
@@ -173,13 +179,14 @@ class WhatsAppMessage extends Model
         $this->save();
 
         // Send the message using the WhatsApp API
-        $service = new WhatsAppMessageService();
+        $service = new WhatsAppMessageService;
         $service->send($this);
     }
 
     public function markAsRead(bool $typingIndicator = false)
     {
-        $service = new WhatsAppMessageService();
+        $service = new WhatsAppMessageService;
+
         return $service->markAsRead($this, $typingIndicator);
     }
 
@@ -188,7 +195,7 @@ class WhatsAppMessage extends Model
         return $this->morphOne(MediaElement::class, 'mediable');
     }
 
-    //Get Text or Image class based on type
+    // Get Text or Image class based on type
     public function getTypedMessageInstance()
     {
         return match ($this->type) {

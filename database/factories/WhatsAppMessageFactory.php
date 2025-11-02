@@ -2,10 +2,10 @@
 
 namespace Database\Factories;
 
-use LaravelWhatsApp\Models\WhatsAppMessage;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use LaravelWhatsApp\Enums\MessageDirection;
 use LaravelWhatsApp\Enums\MessageStatus;
+use LaravelWhatsApp\Models\WhatsAppMessage;
 
 class WhatsAppMessageFactory extends Factory
 {
@@ -13,7 +13,7 @@ class WhatsAppMessageFactory extends Factory
 
     public function definition()
     {
-        
+
         return [
             'direction' => MessageDirection::INCOMING,
             'status' => MessageStatus::READ,

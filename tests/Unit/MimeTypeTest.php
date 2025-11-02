@@ -4,10 +4,10 @@ use LaravelWhatsApp\Enums\MimeType;
 
 it('returns correct category types as static method', function () {
     $categoryTypes = MimeType::categoryTypes();
-    
+
     expect($categoryTypes)->toBeArray()
         ->and($categoryTypes)->toHaveKeys(['AUDIO', 'DOCUMENT', 'IMAGE', 'STICKER', 'VIDEO']);
-    
+
     // Test AUDIO category
     expect($categoryTypes['AUDIO'])->toContain(
         MimeType::AUDIO_AAC,
@@ -16,7 +16,7 @@ it('returns correct category types as static method', function () {
         MimeType::AUDIO_MP4,
         MimeType::AUDIO_OGG
     );
-    
+
     // Test DOCUMENT category
     expect($categoryTypes['DOCUMENT'])->toContain(
         MimeType::DOCUMENT_TEXT,
@@ -28,18 +28,18 @@ it('returns correct category types as static method', function () {
         MimeType::DOCUMENT_PPTX,
         MimeType::DOCUMENT_PDF
     );
-    
+
     // Test IMAGE category
     expect($categoryTypes['IMAGE'])->toContain(
         MimeType::IMAGE_JPEG,
         MimeType::IMAGE_PNG
     );
-    
+
     // Test STICKER category
     expect($categoryTypes['STICKER'])->toContain(
         MimeType::STICKER_WEBP
     );
-    
+
     // Test VIDEO category
     expect($categoryTypes['VIDEO'])->toContain(
         MimeType::VIDEO_3GPP,

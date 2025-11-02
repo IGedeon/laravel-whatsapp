@@ -2,9 +2,7 @@
 
 namespace LaravelWhatsApp\Models;
 
-use LaravelWhatsApp\Enums\MessageType;
 use Illuminate\Database\Eloquent\Model;
-use LaravelWhatsApp\Enums\MessageDirection;
 
 class WhatsAppMessageError extends Model
 {
@@ -27,5 +25,4 @@ class WhatsAppMessageError extends Model
     {
         return $this->belongsTo(WhatsAppMessage::class, 'message_id');
     }
-
 }

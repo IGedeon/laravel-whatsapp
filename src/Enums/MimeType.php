@@ -2,15 +2,14 @@
 
 namespace LaravelWhatsApp\Enums;
 
-
-enum MimeType : string
+enum MimeType: string
 {
     case AUDIO_AAC = 'audio/aac';
     case AUDIO_AMR = 'audio/amr';
     case AUDIO_MPEG = 'audio/mpeg';
     case AUDIO_MP4 = 'audio/mp4';
     case AUDIO_OGG = 'audio/ogg';
-    
+
     case DOCUMENT_TEXT = 'text/plain';
     case DOCUMENT_XLS = 'application/vnd.ms-excel';
     case DOCUMENT_XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
@@ -74,7 +73,7 @@ enum MimeType : string
 
     public function fileExtension(): string
     {
-        return match($this) {
+        return match ($this) {
             self::AUDIO_AAC => 'aac',
             self::AUDIO_AMR => 'amr',
             self::AUDIO_MPEG => 'mp3',
@@ -95,7 +94,4 @@ enum MimeType : string
             self::VIDEO_MP4 => 'mp4',
         };
     }
-
-
-
 }

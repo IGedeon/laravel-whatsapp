@@ -2,51 +2,50 @@
 
 namespace Tests;
 
+use Illuminate\Database\Eloquent\Factories\Factory;
 use LaravelWhatsApp\WhatsAppServiceProvider;
 use Orchestra\Testbench\TestCase as TestbenchTestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Workbench\App\Providers\WorkbenchServiceProvider;
-use Illuminate\Database\Eloquent\Factories\Factory;
 
 abstract class TestCase extends TestbenchTestCase
 {
-	/**
-	 * Register package service providers.
-	 * @param \Illuminate\Foundation\Application $app
-	 * @return array<int, class-string>
-	 */
-	protected function getPackageProviders($app)
-	{
-		return [
-			WhatsAppServiceProvider::class,
-		];
-	}
+    /**
+     * Register package service providers.
+     *
+     * @param  \Illuminate\Foundation\Application  $app
+     * @return array<int, class-string>
+     */
+    protected function getPackageProviders($app)
+    {
+        return [
+            WhatsAppServiceProvider::class,
+        ];
+    }
 
-	/**
-	 * Setup the test environment.
-	 */
-	protected function getEnvironmentSetUp($app)
-	{
-		// In-memory sqlite for fast tests
-		$app['config']->set('database.default', 'testing');
-		$app['config']->set('database.connections.testing', [
-			'driver' => 'sqlite',
-			'database' => ':memory:',
-			'prefix' => '',
-			'foreign_key_constraints' => true,
-		]);
+    /**
+     * Setup the test environment.
+     */
+    protected function getEnvironmentSetUp($app)
+    {
+        // In-memory sqlite for fast tests
+        $app['config']->set('database.default', 'testing');
+        $app['config']->set('database.connections.testing', [
+            'driver' => 'sqlite',
+            'database' => ':memory:',
+            'prefix' => '',
+            'foreign_key_constraints' => true,
+        ]);
 
-		// Minimal required WhatsApp config values
-		$app['config']->set('whatsapp.verify_token', 'test-verify-token');
-		$app['config']->set('whatsapp.app_secret', 'test-app-secret');
-		$app['config']->set('whatsapp.queue.connection', 'sync');
-	}
+        // Minimal required WhatsApp config values
+        $app['config']->set('whatsapp.verify_token', 'test-verify-token');
+        $app['config']->set('whatsapp.app_secret', 'test-app-secret');
+        $app['config']->set('whatsapp.queue.connection', 'sync');
+    }
 
-	protected function setUp(): void
-	{
-		parent::setUp();
-		Factory::guessFactoryNamesUsing(function (string $modelName) {
-			return 'Database\\Factories\\'.class_basename($modelName).'Factory';
-		});
-	}
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Factory::guessFactoryNamesUsing(function (string $modelName) {
+            return 'Database\\Factories\\'.class_basename($modelName).'Factory';
+        });
+    }
 }

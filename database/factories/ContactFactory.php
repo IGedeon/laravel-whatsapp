@@ -1,8 +1,9 @@
 <?php
+
 namespace Database\Factories;
 
-use LaravelWhatsApp\Models\Contact;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use LaravelWhatsApp\Models\Contact;
 
 class ContactFactory extends Factory
 {
@@ -14,6 +15,5 @@ class ContactFactory extends Factory
             'wa_id' => $this->faker->numerify('52155#######'),
             'name' => $this->faker->name,
         ];
-            }
+    }
 }
-
