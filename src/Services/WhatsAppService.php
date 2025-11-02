@@ -80,7 +80,7 @@ class WhatsAppService
         $message->status = \LaravelWhatsApp\Enums\MessageStatus::READ;
         $message->status_timestamp = now();
 
-        self::apiPostRequest(waba:$message->apiPhoneNumber->businessAccount, uri: $message->apiPhoneNumber->whatsapp_id.'/messages', payload: $data);
+        self::apiPostRequest(waba: $message->apiPhoneNumber->businessAccount, uri: $message->apiPhoneNumber->whatsapp_id.'/messages', payload: $data);
 
         return true;
     }
@@ -147,6 +147,4 @@ class WhatsAppService
 
         return $json;
     }
-
-
 }

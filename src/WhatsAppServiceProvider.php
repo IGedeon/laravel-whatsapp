@@ -4,9 +4,8 @@ namespace LaravelWhatsApp;
 
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
-use LaravelWhatsApp\Services\WhatsAppService;
 use LaravelWhatsApp\Events\WhatsAppMessageReceived;
-
+use LaravelWhatsApp\Services\WhatsAppService;
 
 class WhatsAppServiceProvider extends ServiceProvider
 {

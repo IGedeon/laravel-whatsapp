@@ -66,7 +66,7 @@ class CustomContactForTest extends \LaravelWhatsApp\Models\Contact
 
 it('uses custom contact model if configured', function () {
     config(['whatsapp.contact_model' => CustomContactForTest::class]);
-    
+
     Event::fake();
     $payload = getWebhookTextPayloadArray();
     $this->withoutMiddleware(VerifyMetaSignature::class);
@@ -144,7 +144,7 @@ it('can mark a message as read', function () {
         '*' => Http::response(['messages' => [['id' => 'any-id']]], 200),
     ]);
 
-    $service = new \LaravelWhatsApp\Services\WhatsAppService();
+    $service = new \LaravelWhatsApp\Services\WhatsAppService;
     $service->markAsRead($message);
 
     // Estado del modelo

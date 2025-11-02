@@ -2,16 +2,16 @@
 
 namespace LaravelWhatsApp\Models;
 
-use Illuminate\Support\Arr;
-use LaravelWhatsApp\Enums\MessageType;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use LaravelWhatsApp\Enums\MessageStatus;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Support\Arr;
 use LaravelWhatsApp\Enums\MessageDirection;
+use LaravelWhatsApp\Enums\MessageStatus;
+use LaravelWhatsApp\Enums\MessageType;
+use LaravelWhatsApp\Models\MessageTypes\Image;
 use LaravelWhatsApp\Models\MessageTypes\Text;
 use LaravelWhatsApp\Services\WhatsAppService;
-use LaravelWhatsApp\Models\MessageTypes\Image;
-use Illuminate\Database\Eloquent\Relations\MorphOne;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class WhatsAppMessage extends Model
 {

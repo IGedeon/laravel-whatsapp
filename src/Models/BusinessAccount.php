@@ -1,14 +1,14 @@
 <?php
 
 namespace LaravelWhatsApp\Models;
-use Illuminate\Support\Arr;
-use Illuminate\Database\Eloquent\Model;
-use LaravelWhatsApp\Services\WhatsAppService;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Arr;
+use LaravelWhatsApp\Services\WhatsAppService;
 
 class BusinessAccount extends Model
-
 {
     use HasFactory;
 
@@ -44,7 +44,7 @@ class BusinessAccount extends Model
 
     public function getFromMeta(): self
     {
-        $service = new WhatsAppService();
+        $service = new WhatsAppService;
         $data = $service->getWabaInfo($this);
 
         $this->update([
@@ -55,7 +55,7 @@ class BusinessAccount extends Model
             'subscribed_apps' => Arr::get($data, 'subscribed_apps'),
         ]);
 
-        foreach(Arr::get($data, 'phone_numbers.data', []) as $phoneNumberData) {
+        foreach (Arr::get($data, 'phone_numbers.data', []) as $phoneNumberData) {
             $this->phoneNumbers()->updateOrCreate(
                 [
                     'whatsapp_id' => Arr::get($phoneNumberData, 'id'),
@@ -72,7 +72,7 @@ class BusinessAccount extends Model
             );
         }
 
-        foreach(Arr::get($data, 'message_templates.data', []) as $templateData) {
+        foreach (Arr::get($data, 'message_templates.data', []) as $templateData) {
             $this->templates()->updateOrCreate(
                 [
                     'whatsapp_id' => Arr::get($templateData, 'id'),

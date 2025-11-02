@@ -2,9 +2,8 @@
 
 namespace Database\Factories;
 
-use LaravelWhatsApp\Models\Template;
 use Illuminate\Database\Eloquent\Factories\Factory;
-
+use LaravelWhatsApp\Models\Template;
 
 class TemplateFactory extends Factory
 {

@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use LaravelWhatsApp\Models\BusinessAccount;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use LaravelWhatsApp\Models\BusinessAccount;
 
 class BusinessAccountFactory extends Factory
 {

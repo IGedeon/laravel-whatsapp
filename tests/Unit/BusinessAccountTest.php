@@ -2,13 +2,12 @@
 
 namespace Tests\Unit;
 
-use Mockery;
-use Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
-use LaravelWhatsApp\Models\Template;
 use LaravelWhatsApp\Models\BusinessAccount;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use LaravelWhatsApp\Models\Template;
+use Tests\TestCase;
 
 class BusinessAccountTest extends TestCase
 {
@@ -59,14 +58,13 @@ class BusinessAccountTest extends TestCase
     public function test_get_from_meta_updates_fields_and_relations()
     {
         $account = BusinessAccount::factory()->create();
-        
 
         $stubPath = realpath(__DIR__.'/../../stubs/waba_info_response.json');
-    if ($stubPath === false) {
-        throw new \Exception('Stub file not found');
-    }
+        if ($stubPath === false) {
+            throw new \Exception('Stub file not found');
+        }
 
-    $content = file_get_contents($stubPath);
+        $content = file_get_contents($stubPath);
 
         $data = json_decode($content, true);
         Http::fake([
@@ -76,10 +74,9 @@ class BusinessAccountTest extends TestCase
         $account->getFromMeta();
         $account->refresh();
 
-        
         $this->assertEquals(Arr::except($data, ['id', 'phone_numbers', 'message_templates']), Arr::except($account->toArray(), ['id', 'whatsapp_id', 'created_at', 'updated_at']));
         // dd(Arr::except($data, ['id','phone_numbers', 'message_templates']), Arr::except($account->toArray(), ['id', 'whatsapp_id', 'created_at', 'updated_at']));
-        
+
         $this->assertCount(count($data['phone_numbers']['data']), $account->phoneNumbers);
         $dataPhoneNumber = $data['phone_numbers']['data'][0];
         $phoneNumber = $account->phoneNumbers->first();
@@ -97,7 +94,6 @@ class BusinessAccountTest extends TestCase
         $dataTemplate = Arr::except($dataTemplate, ['id']);
         $storedTemplateData = Arr::except($storedTemplate->toArray(), ['id', 'business_account_id', 'created_at', 'updated_at', 'whatsapp_id']);
         $this->assertEquals($dataTemplate, $storedTemplateData);
-
 
     }
 }
