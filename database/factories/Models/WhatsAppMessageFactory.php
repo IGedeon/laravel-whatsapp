@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Factories;
+namespace Database\Factories\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use LaravelWhatsApp\Enums\MessageDirection;

@@ -6,17 +6,13 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use LaravelWhatsApp\Models\MetaApp;
 
 class VerifyMetaSignature
 {
     public function handle(Request $request, Closure $next)
     {
         $sigHeader = $request->header('X-Hub-Signature-256');
-        $appSecret = config('whatsapp.app_secret'); // .env: WHATSAPP_APP_SECRET
-
-        if (empty($appSecret)) {
-            throw new \Exception('App secret not configured in whatsapp.app_secret');
-        }
 
         if (! $sigHeader) {
             return response('Missing signature', 401);
@@ -28,11 +24,22 @@ class VerifyMetaSignature
         // Cuerpo crudo exacto
         $raw = $request->getContent();
 
-        // Calcula HMAC en HEX (no base64), sin alterar el body
-        $calc = hash_hmac('sha256', $raw, $appSecret);
+        $appSecrets = MetaApp::pluck('app_secret')->toArray();
 
-        // Comparación constante (evita timing attacks)
-        if (! hash_equals($calc, $received)) {
+        $calcHashes = array_map(function ($appSecret) use ($raw) {
+            return hash_hmac('sha256', $raw, $appSecret);
+        }, $appSecrets);
+
+        // Verifica si alguno coincide
+        $calc = null;
+        foreach ($calcHashes as $hash) {
+            if (hash_equals($hash, $received)) {
+                $calc = $hash;
+                break;
+            }
+        }
+
+        if (is_null($calc)) {
             Log::warning('Invalid webhook signature', [
                 'calculated' => $calc,
                 'received' => $received,

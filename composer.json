@@ -18,7 +18,8 @@
     "orchestra/testbench": "^10.6.0",
     "phpstan/phpstan": "^2.1.27",
     "rector/rector": "^2.2.4",
-    "pestphp/pest": "^3.8"
+    "pestphp/pest": "^3.8",
+    "laravel/boost": "^1.6"
   },
   "autoload": {
     "psr-4": {
