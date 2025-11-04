@@ -10,8 +10,7 @@ class WhatsAppInstall extends Command
     protected $signature = 'whatsapp:install \
         {--force : Overwrite existing published files} \
         {--no-config : Skip publishing config file} \
-        {--no-migrations : Skip publishing migrations} \
-        {--migrate : Run migrations after publishing}';
+        {--no-migrations : Skip publishing migrations}';
 
     protected $description = 'Publish Laravel WhatsApp package assets (config, migrations) and optionally run migrations.';
 
@@ -50,23 +49,12 @@ class WhatsAppInstall extends Command
             $this->appendBuffer('Nothing was published');
         }
 
-        // Optionally run migrations
-        if ($this->option('migrate')) {
-            $this->line('Running migrations...');
-            $this->appendBuffer('Running migrations...');
-            Artisan::call('migrate', [
-                '--force' => $this->option('force'),
-            ]);
-            $this->output->write(Artisan::output());
-        } else {
-            $this->line('Skipping migrate step (use --migrate to run).');
-            $this->appendBuffer('Skipping migrate step');
-        }
+        
 
         $this->newLine();
         $this->info('Installation complete. Next steps:');
         $this->appendBuffer('Installation complete');
-        $this->line(' 1. Set environment variables (WHATSAPP_ACCESS_TOKEN, WHATSAPP_VERIFY_TOKEN, etc).');
+        $this->line(' 1. Create a WhatsApp Business Account. You can use the whatsapp:configure command for that.');
         $this->line(' 2. Configure listener in config/whatsapp.php if you need custom behavior.');
         $this->line(' 3. Point your webhook route to the package route group (see README).');
 

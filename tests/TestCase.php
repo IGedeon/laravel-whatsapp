@@ -2,7 +2,6 @@
 
 namespace Tests;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
 use LaravelWhatsApp\WhatsAppServiceProvider;
 use Orchestra\Testbench\TestCase as TestbenchTestCase;
 
@@ -26,7 +25,7 @@ abstract class TestCase extends TestbenchTestCase
      */
     protected function getEnvironmentSetUp($app)
     {
-        // In-memory sqlite for fast tests
+        // File-based sqlite for stability across artisan migrate within process
         $app['config']->set('database.default', 'testing');
         $app['config']->set('database.connections.testing', [
             'driver' => 'sqlite',
@@ -36,16 +35,17 @@ abstract class TestCase extends TestbenchTestCase
         ]);
 
         // Minimal required WhatsApp config values
-        $app['config']->set('whatsapp.verify_token', 'test-verify-token');
-        $app['config']->set('whatsapp.app_secret', 'test-app-secret');
         $app['config']->set('whatsapp.queue.connection', 'sync');
     }
 
-    protected function setUp(): void
+    /**
+     * Ensure package migrations are loaded BEFORE RefreshDatabase runs.
+     * Testbench will call this automatically prior a migration refresh.
+     */
+    protected function defineDatabaseMigrations(): void
     {
-        parent::setUp();
-        Factory::guessFactoryNamesUsing(function (string $modelName) {
-            return 'Database\\Factories\\'.class_basename($modelName).'Factory';
-        });
+        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        // Run migrations explicitly so the first test already has schema.
+        $this->artisan('migrate');
     }
 }

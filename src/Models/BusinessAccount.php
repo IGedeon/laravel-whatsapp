@@ -42,11 +42,20 @@ class BusinessAccount extends Model
         return $this->hasMany(Template::class, 'business_account_id', 'id');
     }
 
-    public function getFromMeta(): self
+    public function accessTokens(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        $service = new WhatsAppService;
-        $data = $service->getWabaInfo($this);
+        return $this->belongsToMany(AccessToken::class, 'whatsapp_business_tokens', 'business_account_id', 'access_token_id');
+    }
 
+    public function latestAccessToken(): ?string
+    {
+        return $this->accessTokens->sortByDesc('created_at')->first()?->access_token;
+    }
+
+    public function fillFromMeta($data): self
+    {
+        $this->loadMissing(['phoneNumbers', 'templates']);
+        
         $this->update([
             'name' => Arr::get($data, 'name'),
             'currency' => Arr::get($data, 'currency'),
@@ -90,6 +99,6 @@ class BusinessAccount extends Model
             );
         }
 
-        return $this;
+        return $this->refresh();
     }
 }

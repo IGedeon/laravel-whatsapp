@@ -5,7 +5,9 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use LaravelWhatsApp\Enums\MessageStatus;
 use LaravelWhatsApp\Http\Middleware\VerifyMetaSignature;
+use LaravelWhatsApp\Models\AccessToken;
 use LaravelWhatsApp\Models\ApiPhoneNumber;
+use LaravelWhatsApp\Models\MetaApp;
 use LaravelWhatsApp\Models\WhatsAppMessage;
 use LaravelWhatsApp\Models\WhatsAppMessageError;
 
@@ -25,9 +27,20 @@ function getWebhookTextPayloadArray(): array
 }
 
 beforeEach(function () {
-    ApiPhoneNumber::factory()->create([
+    $this->phoneNumber = ApiPhoneNumber::factory()->create([
         'whatsapp_id' => 'test-phone-number-id',
     ]);
+
+    $this->metaApp = MetaApp::factory()->create([
+        'name' => 'Test Meta App',
+        'meta_app_id' => 'test-meta-app-id',
+    ]);
+
+    $this->token = AccessToken::factory()->create([
+        'meta_app_id' => $this->metaApp->id,
+    ]);
+
+    $this->phoneNumber->businessAccount->accessTokens()->attach($this->metaApp->id);
 });
 
 it('can receive a text message via webhook', function () {
@@ -130,15 +143,13 @@ it('can recieve a image message via webhook', function () {
 });
 
 it('can mark a message as read', function () {
-    // Preparar número
-    $apiPhoneNumber = ApiPhoneNumber::factory()->create();
 
     $message = WhatsAppMessage::factory()->create([
-        'api_phone_number_id' => $apiPhoneNumber->id,
+        'api_phone_number_id' => $this->phoneNumber->id,
         'status' => MessageStatus::DELIVERED,
         'direction' => \LaravelWhatsApp\Enums\MessageDirection::INCOMING,
     ]);
-
+    
     // Reemplazar el fake global para poder hacer aserciones detalladas
     Http::fake([
         '*' => Http::response(['messages' => [['id' => 'any-id']]], 200),
@@ -150,7 +161,7 @@ it('can mark a message as read', function () {
     // Estado del modelo
     expect($message->status)->toBe(MessageStatus::READ);
 
-    $expectedUrl = config('whatsapp.base_url').'/'.config('whatsapp.graph_version').'/'.$apiPhoneNumber->whatsapp_id.'/messages';
+    $expectedUrl = config('whatsapp.base_url').'/'.config('whatsapp.graph_version').'/'.$this->phoneNumber->whatsapp_id.'/messages';
 
     // Asegurar que se envió exactamente una petición
     Http::assertSentCount(1);
@@ -163,7 +174,8 @@ it('can mark a message as read', function () {
             $request->url() === $expectedUrl &&
             $request->method() === 'POST' &&
             $request->hasHeader('Authorization') &&
-            str_contains($request->header('Authorization')[0], $message->apiPhoneNumber->businessAccount->access_token) &&
+            !empty($request->header('Authorization')[0]) &&
+            str_contains($request->header('Authorization')[0], $this->token->access_token) &&
             $json['messaging_product'] === 'whatsapp' &&
             $json['status'] === 'read' &&
             $json['message_id'] === $message->wa_message_id;
@@ -200,7 +212,7 @@ it('uses custom ApiPhoneNumber model if configured', function () {
 it('allows request with valid signature', function () {
     $payloadArray = getWebhookTextPayloadArray();
     $rawPayload = json_encode($payloadArray);
-    $appSecret = 'test-app-secret';
+    $appSecret = $this->metaApp->app_secret;
     $signature = hash_hmac('sha256', $rawPayload, $appSecret);
     $headers = [
         'X-Hub-Signature-256' => 'sha256='.$signature,
@@ -234,18 +246,6 @@ it('rejects request with invalid signature', function () {
     $response->assertSee('Invalid signature');
 });
 
-it('throws exception if app secret missing', function () {
-    $this->withoutExceptionHandling();
-    $payload = getWebhookTextPayloadArray();
-    config(['whatsapp.app_secret' => null]);
-    $headers = [
-        'X-Hub-Signature-256' => 'sha256=anything',
-        'Content-Type' => 'application/json',
-    ];
-    $this->withMiddleware(\LaravelWhatsApp\Http\Middleware\VerifyMetaSignature::class);
-    expect(fn () => $this->post('/whatsapp/webhook', [], $headers, [], [], [], $payload))
-        ->toThrow(\Exception::class, 'App secret not configured in whatsapp.app_secret');
-});
 
 it('can recieve errors via webhook', function () {
     $this->withoutMiddleware(\LaravelWhatsApp\Http\Middleware\VerifyMetaSignature::class);

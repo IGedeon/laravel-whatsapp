@@ -13,6 +13,7 @@ use LaravelWhatsApp\Events\WhatsAppMessageReceived;
 use LaravelWhatsApp\Jobs\DownloadMedia;
 use LaravelWhatsApp\Jobs\MarkAsRead;
 use LaravelWhatsApp\Models\ApiPhoneNumber;
+use LaravelWhatsApp\Models\MetaApp;
 use LaravelWhatsApp\Models\WhatsAppMessage;
 
 class WebhookController extends Controller
@@ -26,7 +27,9 @@ class WebhookController extends Controller
             'hub_challenge' => 'required',
         ]);
 
-        if (config('whatsapp.verify_token') === $request->input('hub_verify_token')) {
+        $metaApp = MetaApp::where('verify_token', $request->input('hub_verify_token'))->first();
+
+        if ($metaApp) {
             return response($request->input('hub_challenge'), 200);
         }
 

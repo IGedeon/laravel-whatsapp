@@ -37,6 +37,7 @@ class WhatsAppServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \LaravelWhatsApp\Console\Commands\WhatsAppInstall::class,
+                \LaravelWhatsApp\Console\Commands\Configure::class,
             ]);
         }
 
