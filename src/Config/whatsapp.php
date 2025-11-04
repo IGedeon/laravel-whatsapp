@@ -27,7 +27,7 @@ return [
     'listeners' => [
         'whatsapp_message_received' => \LaravelWhatsApp\Listeners\HandleWhatsAppMessageReceived::class,
     ],
-  
+
     'mark_messages_as_read_immediately' => env('WHATSAPP_MARK_MESSAGES_AS_READ_IMMEDIATELY', false),
     'expire_media_days' => env('WHATSAPP_EXPIRE_MEDIA_DAYS', 15),
 
