@@ -134,13 +134,6 @@ class Configure extends Command
             return self::FAILURE;
         }
 
-        $data = [
-            'tokenData' => $tokenData,
-            'appData' => $appData,
-            'scopesData' => $scopesData,
-            'wabaData' => $wabaData,
-        ];
-
         $app = MetaApp::updateOrCreate(
             ['meta_app_id' => $appId],
             [
@@ -156,7 +149,7 @@ class Configure extends Command
                 'whatsapp_id' => $tokenData['id'],
                 'name' => $tokenData['name'],
                 'meta_app_id' => $app->id,
-                'expires_at' => $scopesData['data']['expires_at'],
+                'expires_at' => $scopesData['data']['expires_at'] == 0 ? null : $scopesData['data']['expires_at'],
             ]
         );
 
