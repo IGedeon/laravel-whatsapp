@@ -21,6 +21,7 @@ it('can create a media element with polymorphic relationship', function () {
 
     expect($fillable)->toContain('mediable_type', 'mediable_id')
         ->and($fillable)->toContain('uploaded_at')
+        ->and($fillable)->toContain('expired_at')
         ->and($fillable)->not->toContain('message_id'); // Old field should be removed
 });
 
@@ -28,10 +29,12 @@ it('casts datetime fields properly', function () {
     $mediaElement = new MediaElement([
         'downloaded_at' => '2025-10-30 10:00:00',
         'uploaded_at' => '2025-10-30 11:00:00',
+        'expired_at' => '2025-10-30 12:00:00',
     ]);
 
     expect($mediaElement->downloaded_at)->toBeInstanceOf(\Carbon\Carbon::class)
-        ->and($mediaElement->uploaded_at)->toBeInstanceOf(\Carbon\Carbon::class);
+        ->and($mediaElement->uploaded_at)->toBeInstanceOf(\Carbon\Carbon::class)
+        ->and($mediaElement->expired_at)->toBeInstanceOf(\Carbon\Carbon::class);
 });
 
 it('returns early if wa_media_id already exists on upload', function () {

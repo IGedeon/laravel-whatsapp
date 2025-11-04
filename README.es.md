@@ -135,6 +135,7 @@ Usa estos flags solo si quieres tener copias locales de las migraciones o del co
 
 ## Variables de entorno y configuración (`config/whatsapp.php`)
 
+
 | Variable | Requerido | Defecto | Descripción |
 |----------|-----------|---------|-------------|
 | `APP_URL` | Sí | - | Usada para construir `subscribe_url` (`/whatsapp/webhook`). |
@@ -145,6 +146,7 @@ Usa estos flags solo si quieres tener copias locales de las migraciones o del co
 | `WHATSAPP_MEDIA_DOWNLOAD_QUEUE` | No | `default` | Cola para job `DownloadMedia`. |
 | `WHATSAPP_MARK_AS_READ_QUEUE` | No | `default` | Cola para job `MarkAsRead`. |
 | `WHATSAPP_MARK_MESSAGES_AS_READ_IMMEDIATELY` | No | `false` | Si `true`, marca mensajes como leídos inmediatamente. |
+| `WHATSAPP_EXPIRE_MEDIA_DAYS` | No | `15` | Número de días después de los cuales los medios subidos a WhatsApp expirarán. |
 
 
 Notas:
