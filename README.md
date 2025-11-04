@@ -1,3 +1,307 @@
+![Tests](https://github.com/IGedeon/laravel-whatsapp/actions/workflows/test.yml/badge.svg)
+# Laravel WhatsApp Cloud API (Multi App / Multi WABA / Multi Number)
+
+[Versión en Español](./README.es.md)
+
+Library to integrate WhatsApp Cloud API into Laravel applications.
+
+## Features
+
+- Multiple Meta Apps, Business Accounts (WABAs), Access Tokens, and Phone Numbers
+- Centralized global webhook with multi-secret signature verification
+- Persistence for contacts, messages, templates, media, access tokens, meta apps & errors
+- Media upload & download (images, documents, audio, video, stickers)
+- Optional queues for media download & mark-as-read jobs
+- Configurable immediate mark-as-read behavior
+- Interactive configuration command (`php artisan whatsapp:configure`) to validate and persist Meta App, Access Token, WABA subscription & data
+- Template message support (Meta-approved templates)
+
+---
+
+## Business Account, Meta App, Access Token & Template Capabilities
+
+- **MetaApp**: Stores `meta_app_id`, `name`, `app_secret`, `verify_token`. Supports multiple apps simultaneously. Webhook GET verification and POST signature validation now search across ALL stored apps.
+- **AccessToken**: Stores long-lived token (`access_token`), metadata (`whatsapp_id`, `name`, `expires_at`) and links to a `MetaApp`. Historical tokens can be retained; sending logic uses the latest attached token per Business Account.
+- **BusinessAccount**: Represents a WhatsApp Business Account (WABA) including profile data, currency, timezone, template namespace, subscribed apps, phone numbers and templates. Access tokens are a many-to-many relation via `whatsapp_business_tokens`.
+- **Template**: Stores approved message templates (name, language, category, components). Associated to Business Accounts; used for outbound template messages.
+- **Phone Numbers**: Synced into `whatsapp_api_phone_numbers` with throughput level, webhook configuration, quality rating, etc.
+
+Models live in `src/Models/MetaApp.php`, `AccessToken.php`, `BusinessAccount.php`, `Template.php`, plus related factories and migrations.
+
+---
+
+<!-- Recommended Workflow section merged into Installation -->
+
+## Installation
+
+Recommended end-to-end setup (no manual asset publishing required for basic usage):
+
+1. Install the package:
+	```bash
+	composer require igedeon/laravel-whatsapp
+	```
+2. Run migrations (if your application persists WhatsApp data locally):
+	```bash
+	php artisan migrate
+	```
+3. Configure your first Meta App / WABA with the interactive wizard:
+	```bash
+	php artisan whatsapp:configure
+	```
+	It will prompt for: Access Token, Meta App ID, App Secret, Verify Token, WABA ID and will:
+	- Validate token identity (`/me`)
+	- Validate the Meta App
+	- Check required granular scopes
+	- Subscribe the WABA using `subscribe_url` (`APP_URL` + `/whatsapp/webhook`)
+	- Persist `MetaApp`, `AccessToken`, `BusinessAccount` and link them via pivot
+4. Start sending messages using the models (`Contact`, `ApiPhoneNumber`, `WhatsAppMessage`).
+5. Re-run `whatsapp:configure` anytime to rotate tokens or add more Meta Apps.
+
+Notes:
+- Manual publishing of config/migrations is no longer required for the core flow.
+- Ensure `APP_URL` is correctly set before running the configuration command.
+
+### Optional: Publish or Force (only if you need local customization)
+
+```bash
+php artisan whatsapp:install --force      # Overwrite published config/migrations
+php artisan whatsapp:install --no-config  # Skip config publish
+php artisan whatsapp:install --no-migrations
+```
+
+Use these flags only if you want local copies to modify.
+
+---
+
+## Webhook Security: Multi App Signature & Verification
+
+`VerifyMetaSignature` loads all `app_secret` values from `whatsapp_meta_apps` and accepts a request if ANY HMAC matches the `X-Hub-Signature-256` header.
+
+Initial GET verification (`hub.challenge`) succeeds if the provided `hub_verify_token` matches any stored `verify_token`.
+
+Disable middleware for local tests:
+```php
+$this->withoutMiddleware(\LaravelWhatsApp\Http\Middleware\VerifyMetaSignature::class);
+```
+
+Signature generation in tests:
+```php
+$signature = hash_hmac('sha256', $rawBody, $metaApp->app_secret);
+```
+
+Header:
+```
+X-Hub-Signature-256: sha256=<signature>
+```
+
+If none match, request is rejected (401) and logged.
+
+---
+
+## Environment & Config (`config/whatsapp.php`)
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `APP_URL` | Yes | - | Used to build `subscribe_url` (`/whatsapp/webhook`). |
+| `WHATSAPP_GRAPH_VERSION` | No | `v24.0` | Graph API version for Cloud API calls. |
+| `WHATSAPP_BASE_URL` | No | `https://graph.facebook.com` | Graph API base URL. |
+| `WHATSAPP_DOWNLOAD_DISK` | No | `local` | Disk used for downloaded media. |
+| `WHATSAPP_QUEUE_CONNECTION` | No | `sync` | Queue connection for jobs. |
+| `WHATSAPP_MEDIA_DOWNLOAD_QUEUE` | No | `default` | Queue for `DownloadMedia` job. |
+| `WHATSAPP_MARK_AS_READ_QUEUE` | No | `default` | Queue for `MarkAsRead` job. |
+| `WHATSAPP_MARK_MESSAGES_AS_READ_IMMEDIATELY` | No | `false` | Dispatch read job immediately on inbound messages. |
+
+
+Notes:
+1. App secrets & verify tokens now reside in DB (`whatsapp_meta_apps`), not env.
+2. Access tokens reside in DB (`whatsapp_access_tokens`). Rotate via `whatsapp:configure`.
+3. At least one `ApiPhoneNumber` with a real `phone_number_id` is required for outbound messaging.
+4. If only one phone number exists, `WhatsAppMessage` may auto-select it when omitted.
+
+Minimal `.env`:
+```dotenv
+APP_URL="https://example.com"
+WHATSAPP_DOWNLOAD_DISK=public
+```
+
+---
+
+## Sending Messages (`WhatsAppMessage`)
+
+Basic flow:
+1. Create or fetch `Contact` (`wa_id` = number without `+`, with country code).
+2. Ensure an `ApiPhoneNumber` exists and is linked to a `BusinessAccount` with at least one `AccessToken`.
+3. Instantiate `WhatsAppMessage`, call `initMessage()` with type & content.
+4. Call `send()`.
+
+Supported `MessageType` enum values: `text`, `image`, `video`, `audio`, `document`, `sticker`, `location`, `contacts`, `button`, `interactive`, `reaction`, `order`, `template`.
+
+Generic content structure:
+```php
+[
+  'body' => 'Test message',
+  // OR for media after upload: 'id' => 'MEDIA_ID'
+]
+```
+
+Payload automatically sent:
+```json
+{
+  "messaging_product": "whatsapp",
+  "to": "<wa_id>",
+  "type": "text|image|...",
+  "text|image|video|...": { }
+}
+```
+
+### Example: Send a Text Message
+```php
+use LaravelWhatsApp\Models\Contact;
+use LaravelWhatsApp\Models\ApiPhoneNumber;
+use LaravelWhatsApp\Models\WhatsAppMessage;
+use LaravelWhatsApp\Enums\MessageType;
+
+$contact = Contact::firstOrCreate([
+  'wa_id' => '5215512345678',
+], ['name' => 'Juan Perez']);
+
+$from = ApiPhoneNumber::first(); // or locate by phone_number_id
+
+$message = new WhatsAppMessage();
+$message->initMessage(
+  type: MessageType::TEXT,
+  to: $contact,
+  from: $from,
+  contentProps: ['body' => 'Hello! This is a test message.']
+);
+
+$message->send();
+```
+
+### Example: Send a Template Message
+```php
+use LaravelWhatsApp\Services\WhatsAppMessageService;
+use LaravelWhatsApp\Models\Contact;
+
+$contact = Contact::firstOrCreate(['wa_id' => '5215512345678']);
+$service = app(WhatsAppMessageService::class);
+
+$components = [
+  [
+    'type' => 'body',
+    'parameters' => [
+      ['type' => 'text', 'text' => 'Juan'],
+      ['type' => 'text', 'text' => 'Order #1234'],
+    ]
+  ],
+  [
+    'type' => 'button',
+    'sub_type' => 'url',
+    'index' => 0,
+    'parameters' => [ ['type' => 'text', 'text' => '1234'] ]
+  ]
+];
+
+$service->sendTemplateMessage(
+  to: $contact,
+  templateName: 'order_followup',
+  languageCode: 'es_CO',
+  components: $components
+);
+```
+
+Expected API structure:
+```json
+{
+  "messaging_product": "whatsapp",
+  "to": "5215512345678",
+  "type": "template",
+  "template": {
+    "name": "order_followup",
+    "language": { "code": "es_CO" },
+    "components": []
+  }
+}
+```
+
+Valid components: `header`, `body`, `footer`, `button`.
+
+---
+
+## Media Upload & Send Image
+```php
+use LaravelWhatsApp\Models\Contact;
+use LaravelWhatsApp\Models\ApiPhoneNumber;
+use LaravelWhatsApp\Models\MediaElement;
+use LaravelWhatsApp\Models\MessageTypes\Image;
+
+$contact = Contact::firstOrCreate(['wa_id' => '5215512345678']);
+$from = ApiPhoneNumber::first();
+
+$media = MediaElement::create([
+  'api_phone_number_id' => $from->id,
+]);
+
+$media->upload(storage_path('app/example-image.jpg'));
+
+$imageMessage = Image::createFromId(
+  to: $contact,
+  from: $from,
+  mediaId: $media->wa_media_id,
+  caption: 'Product photo'
+);
+
+$imageMessage->send();
+```
+
+---
+
+## Mark Incoming Message as Read
+```php
+use LaravelWhatsApp\Services\WhatsAppMessageService;
+use LaravelWhatsApp\Models\WhatsAppMessage;
+
+$service = app(WhatsAppMessageService::class);
+$incoming = WhatsAppMessage::find(123);
+$service->markAsRead($incoming);
+```
+
+---
+
+## Media Download Job
+```php
+use LaravelWhatsApp\Jobs\DownloadMedia;
+use LaravelWhatsApp\Models\MediaElement;
+
+$media = MediaElement::find(55);
+DownloadMedia::dispatch($media); // queue from config
+```
+
+---
+
+## Event: `WhatsAppMessageReceived`
+
+Fired on each inbound message. Publish config to override listener.
+```php
+'listeners' => [
+  'whatsapp_message_received' => \LaravelWhatsApp\Listeners\HandleWhatsAppMessageReceived::class,
+];
+```
+
+Implement your own listener for custom logic (queueable, heavy processing, etc.).
+
+---
+
+## Tests
+Run Pest:
+```bash
+composer test
+```
+
+---
+
+## License
+MIT
 # ![Tests](https://github.com/IGedeon/laravel-whatsapp/actions/workflows/test.yml/badge.svg)
 # Laravel WhatsApp Cloud API (Multi Number)
 
@@ -266,7 +570,7 @@ php artisan whatsapp:install --no-migrations
 | `WHATSAPP_QUEUE_CONNECTION` | No | `sync` | Queue connection (see `queue.php`). E.g., `redis`, `database`, `sqs`. |
 | `WHATSAPP_MEDIA_DOWNLOAD_QUEUE` | No | `default` | Name of the queue for the `DownloadMedia` Job. |
 | `WHATSAPP_MARK_AS_READ_QUEUE` | No | `default` | Name of the queue for the `MarkAsRead` Job. |
-| `WHATSAPP_DEFAULT_DISPLAY_PHONE_NUMBER` | Optional | `null` | Default display phone number (e.g., +1234567890). |
+
 
 Notes:
 
