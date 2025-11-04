@@ -49,8 +49,6 @@ class WhatsAppInstall extends Command
             $this->appendBuffer('Nothing was published');
         }
 
-        
-
         $this->newLine();
         $this->info('Installation complete. Next steps:');
         $this->appendBuffer('Installation complete');

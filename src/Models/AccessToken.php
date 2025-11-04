@@ -5,7 +5,6 @@ namespace LaravelWhatsApp\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-
 class AccessToken extends Model
 {
     use HasFactory;
@@ -33,5 +32,4 @@ class AccessToken extends Model
     {
         return $this->belongsToMany(BusinessAccount::class, 'whatsapp_business_tokens', 'access_token_id', 'business_account_id');
     }
-
 }

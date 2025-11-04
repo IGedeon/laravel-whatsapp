@@ -1,13 +1,15 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up()
     {
         Schema::dropIfExists('whatsapp_business_tokens');
-        
+
         Schema::create('whatsapp_business_tokens', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('access_token_id');

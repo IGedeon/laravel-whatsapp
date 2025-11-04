@@ -2,9 +2,9 @@
 
 namespace Database\Factories\Models;
 
-use LaravelWhatsApp\Models\MetaApp;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
+use LaravelWhatsApp\Models\MetaApp;
 
 class MetaAppFactory extends Factory
 {

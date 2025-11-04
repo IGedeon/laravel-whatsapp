@@ -25,6 +25,7 @@ class MetaApp extends Model
         $this->update([
             'name' => $data['name'] ?? null,
         ]);
+
         return $this;
     }
 }

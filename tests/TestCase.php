@@ -44,7 +44,7 @@ abstract class TestCase extends TestbenchTestCase
      */
     protected function defineDatabaseMigrations(): void
     {
-        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         // Run migrations explicitly so the first test already has schema.
         $this->artisan('migrate');
     }

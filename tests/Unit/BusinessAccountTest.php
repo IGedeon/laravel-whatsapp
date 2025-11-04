@@ -3,6 +3,7 @@
 use Illuminate\Support\Arr;
 use LaravelWhatsApp\Models\BusinessAccount;
 use LaravelWhatsApp\Models\Template;
+
 // TestCase & RefreshDatabase already applied via tests/Pest.php
 
 it('fills attributes defined as fillable', function () {
@@ -78,4 +79,3 @@ it('fills fields & relationships from Meta API payload', function () {
     $storedTemplateData = Arr::except($storedTemplate->toArray(), ['id', 'business_account_id', 'created_at', 'updated_at', 'whatsapp_id']);
     expect($storedTemplateData)->toEqual($dataTemplate);
 })->group('business-account');
-

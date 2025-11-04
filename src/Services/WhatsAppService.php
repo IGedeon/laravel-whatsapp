@@ -4,9 +4,7 @@ namespace LaravelWhatsApp\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use LaravelWhatsApp\Models\AccessToken;
 use LaravelWhatsApp\Models\ApiPhoneNumber;
-use LaravelWhatsApp\Models\BusinessAccount;
 use LaravelWhatsApp\Models\Contact;
 use LaravelWhatsApp\Models\WhatsAppMessage;
 
@@ -84,8 +82,8 @@ class WhatsAppService
         $message->status_timestamp = now();
 
         $token = $message->apiPhoneNumber->businessAccount->latestAccessToken();
-        if(empty($token)){
-            throw new \Exception("No access token available to mark message as read.");
+        if (empty($token)) {
+            throw new \Exception('No access token available to mark message as read.');
         }
 
         self::apiPostRequest(access_token: $token, uri: $message->apiPhoneNumber->whatsapp_id.'/messages', payload: $data);

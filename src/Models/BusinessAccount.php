@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Arr;
-use LaravelWhatsApp\Services\WhatsAppService;
 
 class BusinessAccount extends Model
 {
@@ -55,7 +54,7 @@ class BusinessAccount extends Model
     public function fillFromMeta($data): self
     {
         $this->loadMissing(['phoneNumbers', 'templates']);
-        
+
         $this->update([
             'name' => Arr::get($data, 'name'),
             'currency' => Arr::get($data, 'currency'),

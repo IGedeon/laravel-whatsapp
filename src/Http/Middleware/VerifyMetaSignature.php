@@ -13,7 +13,7 @@ class VerifyMetaSignature
     public function handle(Request $request, Closure $next)
     {
         $sigHeader = $request->header('X-Hub-Signature-256');
-        
+
         if (! $sigHeader) {
             return response('Missing signature', 401);
         }
@@ -39,7 +39,7 @@ class VerifyMetaSignature
             }
         }
 
-        if(is_null($calc)) {
+        if (is_null($calc)) {
             Log::warning('Invalid webhook signature', [
                 'calculated' => $calc,
                 'received' => $received,

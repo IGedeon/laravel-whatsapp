@@ -2,10 +2,10 @@
 
 namespace Database\Factories\Models;
 
-use Illuminate\Support\Str;
-// use Database\Factories\MetaAppFactory;
-use LaravelWhatsApp\Models\AccessToken;
 use Illuminate\Database\Eloquent\Factories\Factory;
+// use Database\Factories\MetaAppFactory;
+use Illuminate\Support\Str;
+use LaravelWhatsApp\Models\AccessToken;
 
 class AccessTokenFactory extends Factory
 {

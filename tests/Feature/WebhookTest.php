@@ -149,7 +149,7 @@ it('can mark a message as read', function () {
         'status' => MessageStatus::DELIVERED,
         'direction' => \LaravelWhatsApp\Enums\MessageDirection::INCOMING,
     ]);
-    
+
     // Reemplazar el fake global para poder hacer aserciones detalladas
     Http::fake([
         '*' => Http::response(['messages' => [['id' => 'any-id']]], 200),
@@ -174,7 +174,7 @@ it('can mark a message as read', function () {
             $request->url() === $expectedUrl &&
             $request->method() === 'POST' &&
             $request->hasHeader('Authorization') &&
-            !empty($request->header('Authorization')[0]) &&
+            ! empty($request->header('Authorization')[0]) &&
             str_contains($request->header('Authorization')[0], $this->token->access_token) &&
             $json['messaging_product'] === 'whatsapp' &&
             $json['status'] === 'read' &&
@@ -245,7 +245,6 @@ it('rejects request with invalid signature', function () {
     $response->assertStatus(401);
     $response->assertSee('Invalid signature');
 });
-
 
 it('can recieve errors via webhook', function () {
     $this->withoutMiddleware(\LaravelWhatsApp\Http\Middleware\VerifyMetaSignature::class);
