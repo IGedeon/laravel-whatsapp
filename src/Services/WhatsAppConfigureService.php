@@ -9,33 +9,33 @@ use LaravelWhatsApp\Models\MetaApp;
 
 class WhatsAppConfigureService
 {
-	private WhatsAppService $whatsAppService;
+    private WhatsAppService $whatsAppService;
 
-	public function __construct(
-		private readonly string $accessToken,
-		private readonly string $wabaId,
-		private readonly string $appId,
-		private readonly string $appSecret,
-		private readonly string $verifyToken,
-	){
-		$service = app(WhatsAppService::class);
+    public function __construct(
+        private readonly string $accessToken,
+        private readonly string $wabaId,
+        private readonly string $appId,
+        private readonly string $appSecret,
+        private readonly string $verifyToken,
+    ) {
+        $service = app(WhatsAppService::class);
 
-		if(!$service){
-			$service = new WhatsAppService();
-		}
+        if (! $service) {
+            $service = new WhatsAppService;
+        }
 
-		$this->whatsAppService = $service;
-	}
+        $this->whatsAppService = $service;
+    }
 
-	public function configure(): array
-	{
+    public function configure(): array
+    {
         try {
             $tokenData = $this->whatsAppService::apiGetRequest(access_token: $this->accessToken, uri: '/me');
         } catch (\Exception $e) {
             return [
-				'success' => false,
-				'message' => 'Failed to validate token: '.$e->getMessage(),
-			];
+                'success' => false,
+                'message' => 'Failed to validate token: '.$e->getMessage(),
+            ];
         }
 
         try {
@@ -45,11 +45,11 @@ class WhatsAppConfigureService
             );
         } catch (\Exception $e) {
             return [
-				'success' => false,
-				'message' => 'Failed to validate app: '.$e->getMessage(),
-			];
+                'success' => false,
+                'message' => 'Failed to validate app: '.$e->getMessage(),
+            ];
         }
-		
+
         try {
             $scopesData = $this->whatsAppService::apiGetRequest(
                 access_token: $this->accessToken,
@@ -62,9 +62,9 @@ class WhatsAppConfigureService
             );
         } catch (\Exception $e) {
             return [
-				'success' => false,
-				'message' => 'Failed to validate token scopes: '.$e->getMessage(),
-			];
+                'success' => false,
+                'message' => 'Failed to validate token scopes: '.$e->getMessage(),
+            ];
         }
 
         $granular_scopes = Arr::get($scopesData, 'data.scopes');
@@ -76,21 +76,21 @@ class WhatsAppConfigureService
             'whatsapp_business_manage_events',
         ];
 
-		$scopeError = null;
+        $scopeError = null;
 
         foreach ($required as $scope) {
-			if (! in_array($scope, $granular_scopes)) {
-				$scopeError = 'Access Token is missing required scope: '.$scope;
+            if (! in_array($scope, $granular_scopes)) {
+                $scopeError = 'Access Token is missing required scope: '.$scope;
                 break;
             }
         }
 
-		if($scopeError){
-			return [
-				'success' => false,
-				'message' => $scopeError,
-			];
-		}
+        if ($scopeError) {
+            return [
+                'success' => false,
+                'message' => $scopeError,
+            ];
+        }
 
         try {
             $wabaData = $this->whatsAppService::apiGetRequest(
@@ -99,9 +99,9 @@ class WhatsAppConfigureService
             );
         } catch (\Exception $e) {
             return [
-				'success' => false,
-				'message' => 'Failed to validate WABA: '.$e->getMessage(),
-			];
+                'success' => false,
+                'message' => 'Failed to validate WABA: '.$e->getMessage(),
+            ];
         }
 
         $subscribeAction = $this->whatsAppService::apiPostRequest(
@@ -113,49 +113,49 @@ class WhatsAppConfigureService
             ]
         );
 
-		if(Arr::get($subscribeAction, 'success') === true){
-			$app = MetaApp::updateOrCreate(
-				['meta_app_id' => $this->appId],
-				[
-					'name' => $appData['name'],
-					'app_secret' => $this->appSecret,
-					'verify_token' => $this->verifyToken,
-				]
-			);
-	
-			$token = AccessToken::updateOrCreate(
-				['access_token' => $this->accessToken],
-				[
-					'whatsapp_id' => $tokenData['id'],
-					'name' => $tokenData['name'],
-					'meta_app_id' => $app->id,
-					'expires_at' => $scopesData['data']['expires_at'] == 0 ? null : $scopesData['data']['expires_at'],
-				]
-			);
-	
-			$waba = BusinessAccount::firstOrCreate(
-				['whatsapp_id' => $wabaData['id']]
-			);
-	
-			$wabaData = $this->whatsAppService::apiGetRequest(
-				access_token: $this->accessToken,
-				uri: "/{$this->wabaId}?fields=id,name,currency,timezone_id,message_template_namespace,message_templates,phone_numbers,subscribed_apps"
-			);
+        if (Arr::get($subscribeAction, 'success') === true) {
+            $app = MetaApp::updateOrCreate(
+                ['meta_app_id' => $this->appId],
+                [
+                    'name' => $appData['name'],
+                    'app_secret' => $this->appSecret,
+                    'verify_token' => $this->verifyToken,
+                ]
+            );
 
-			$fillData = $waba->fillFromMeta($wabaData, returnSelf: false);
-	
-			$waba->accessTokens()->syncWithoutDetaching([$token->id]);
+            $token = AccessToken::updateOrCreate(
+                ['access_token' => $this->accessToken],
+                [
+                    'whatsapp_id' => $tokenData['id'],
+                    'name' => $tokenData['name'],
+                    'meta_app_id' => $app->id,
+                    'expires_at' => $scopesData['data']['expires_at'] == 0 ? null : $scopesData['data']['expires_at'],
+                ]
+            );
 
-			return [
-				'success' => true,
-				'message' => 'WABA successfully subscribed to the App.',
-				'data' => $fillData,
-			];
-		}
+            $waba = BusinessAccount::firstOrCreate(
+                ['whatsapp_id' => $wabaData['id']]
+            );
 
-		return [
-			'success' => false,
-			'message' => 'Failed to subscribe WABA to the App.',
-		];
-	}
+            $wabaData = $this->whatsAppService::apiGetRequest(
+                access_token: $this->accessToken,
+                uri: "/{$this->wabaId}?fields=id,name,currency,timezone_id,message_template_namespace,message_templates,phone_numbers,subscribed_apps"
+            );
+
+            $fillData = $waba->fillFromMeta($wabaData, returnSelf: false);
+
+            $waba->accessTokens()->syncWithoutDetaching([$token->id]);
+
+            return [
+                'success' => true,
+                'message' => 'WABA successfully subscribed to the App.',
+                'data' => $fillData,
+            ];
+        }
+
+        return [
+            'success' => false,
+            'message' => 'Failed to subscribe WABA to the App.',
+        ];
+    }
 }

@@ -103,7 +103,7 @@ class BusinessAccount extends Model
             );
         }
 
-        if (!$returnSelf) {
+        if (! $returnSelf) {
             return $returnData;
         }
 
