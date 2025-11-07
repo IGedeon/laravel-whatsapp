@@ -22,7 +22,9 @@ it('can create a complete media workflow from message to upload', function () {
     // Create test data
     $apiPhoneNumber = ApiPhoneNumber::factory()->create();
 
-    $contact = Contact::factory()->create();
+    $contact = Contact::factory()->create([
+        'api_phone_id' => $apiPhoneNumber->id,
+    ]);
 
     // Create a WhatsApp message with media
     $message = new WhatsAppMessage;
@@ -89,7 +91,9 @@ it('can handle media upload', function () {
 it('handles webhook creation of media elements correctly', function () {
     $apiPhoneNumber = ApiPhoneNumber::factory()->create();
 
-    $contact = Contact::factory()->create();
+    $contact = Contact::factory()->create([
+        'api_phone_id' => $apiPhoneNumber->id,
+    ]);
 
     // Simulate webhook controller creating message with media
     $message = new WhatsAppMessage;

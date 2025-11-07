@@ -68,6 +68,7 @@ class WebhookController extends Controller
         ]);
 
         $contact->last_messages_received_at = $message->timestamp;
+        $contact->save();
 
         if ($message->type->isMedia()) {
             $media = $message->media()->create([
@@ -177,6 +178,7 @@ class WebhookController extends Controller
                 $contactModel = config('whatsapp.contact_model');
                 foreach ($contacts_ as $contactData) {
                     $contact = $contactModel::firstOrCreate([
+                        'api_phone_id' => $apiPhoneNumber->id,
                         'wa_id' => $contactData['wa_id'] ?? '',
                         'name' => $contactData['profile']['name'] ?? '',
                     ]);

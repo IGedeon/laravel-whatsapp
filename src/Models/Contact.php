@@ -12,6 +12,7 @@ class Contact extends Model
     protected $table = 'whatsapp_contacts';
 
     protected $fillable = [
+        'api_phone_id',
         'wa_id',
         'name',
         'profile_pic_url',
@@ -22,4 +23,9 @@ class Contact extends Model
     protected $casts = [
         'last_messages_received_at' => 'datetime',
     ];
+
+    public function apiPhoneNumber()
+    {
+        return $this->belongsTo(config('whatsapp.apiphone_model'), 'api_phone_number_id');
+    }
 }
