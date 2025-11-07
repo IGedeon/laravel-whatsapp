@@ -33,14 +33,11 @@ class WhatsAppServiceProvider extends ServiceProvider
             __DIR__.'/Config/whatsapp.php' => config_path('whatsapp.php'),
             __DIR__.'/../database/migrations/' => database_path('migrations'),
         ], 'whatsapp');
-
-        $this->commands([
-            \LaravelWhatsApp\Console\Commands\Configure::class,
-        ]);
-
+        
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \LaravelWhatsApp\Console\Commands\WhatsAppInstall::class,
+                \LaravelWhatsApp\Console\Commands\Configure::class,
             ]);
         }
 
