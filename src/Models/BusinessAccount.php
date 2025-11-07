@@ -51,7 +51,7 @@ class BusinessAccount extends Model
         return $this->accessTokens->sortByDesc('created_at')->first()?->access_token;
     }
 
-    public function fillFromMeta($data): self
+    public function fillFromMeta($data, bool $returnSelf = true): self|array
     {
         $this->loadMissing(['phoneNumbers', 'templates']);
 
@@ -63,8 +63,13 @@ class BusinessAccount extends Model
             'subscribed_apps' => Arr::get($data, 'subscribed_apps'),
         ]);
 
+        $returnData = [
+            'phone_numbers' => [],
+            'message_templates' => [],
+        ];
+
         foreach (Arr::get($data, 'phone_numbers.data', []) as $phoneNumberData) {
-            $this->phoneNumbers()->updateOrCreate(
+            $returnData['phone_numbers'][] = $this->phoneNumbers()->updateOrCreate(
                 [
                     'whatsapp_id' => Arr::get($phoneNumberData, 'id'),
                 ],
@@ -81,7 +86,7 @@ class BusinessAccount extends Model
         }
 
         foreach (Arr::get($data, 'message_templates.data', []) as $templateData) {
-            $this->templates()->updateOrCreate(
+            $returnData['message_templates'][] = $this->templates()->updateOrCreate(
                 [
                     'whatsapp_id' => Arr::get($templateData, 'id'),
                 ],
@@ -96,6 +101,10 @@ class BusinessAccount extends Model
                     'sub_category' => Arr::get($templateData, 'sub_category'),
                 ]
             );
+        }
+
+        if (! $returnSelf) {
+            return $returnData;
         }
 
         return $this->refresh();
