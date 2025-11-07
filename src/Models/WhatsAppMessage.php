@@ -198,16 +198,19 @@ class WhatsAppMessage extends Model
     // Get Text or Image class based on type
     public function getTypedMessageInstance()
     {
+        $contactClass = config('whatsapp.contact_model');
+        $apiPhoneClass = config('whatsapp.apiphone_model');
+
         return match ($this->type) {
             MessageType::TEXT => new Text(
-                to: Contact::find($this->contact_id),
+                to: $contactClass::find($this->contact_id),
                 body: $this->getContentProperty('body'),
                 preview_url: $this->getContentProperty('preview_url') ?? false,
-                from: ApiPhoneNumber::find($this->api_phone_number_id)
+                from: $apiPhoneClass::find($this->api_phone_number_id)
             ),
             MessageType::IMAGE => Image::createFromId(
-                to: Contact::find($this->contact_id),
-                from: ApiPhoneNumber::find($this->api_phone_number_id),
+                to: $contactClass::find($this->contact_id),
+                from: $apiPhoneClass::find($this->api_phone_number_id),
                 mediaId: $this->getContentProperty('id') ?? '',
                 caption: $this->getContentProperty('caption') ?? ''
             ),

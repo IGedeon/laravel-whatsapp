@@ -206,15 +206,16 @@ use LaravelWhatsApp\Models\ApiPhoneNumber;
 use LaravelWhatsApp\Models\WhatsAppMessage;
 use LaravelWhatsApp\Enums\MessageType;
 
-// 1. Obtener o crear contacto
+// 1. Obtener número de envío
+$from = ApiPhoneNumber::first();
+
+// 2. Obtener o crear contacto
 $contact = Contact::firstOrCreate([
+  'api_phone_id' => $from->id,
 	'wa_id' => '5215512345678', // Número destino sin '+'
 ], [
 	'nombre' => 'Juan Perez'
 ]);
-
-// 2. (Opcional) Obtener número de envío si no hay uno por defecto
-$from = ApiPhoneNumber::where('phone_number_id', env('WHATSAPP_DEFAULT_API_PHONE_NUMBER_ID'))->first();
 
 // 3. Crear instancia de mensaje
 $message = new WhatsAppMessage();
@@ -236,8 +237,13 @@ $message->send();
 ```php
 use LaravelWhatsApp\Services\WhatsAppMessageService;
 use LaravelWhatsApp\Models\Contact;
+use LaravelWhatsApp\Models\ApiPhoneNumber;
 
-$contact = Contact::firstOrCreate(['wa_id' => '5215512345678']);
+$from = ApiPhoneNumber::first();
+$contact = Contact::firstOrCreate([
+  'api_phone_id' => $from->id,
+  'wa_id' => '5215512345678'
+]);
 
 $service = app(WhatsAppMessageService::class);
 
@@ -287,8 +293,11 @@ use LaravelWhatsApp\Models\ApiPhoneNumber;
 use LaravelWhatsApp\Models\MediaElement;
 use LaravelWhatsApp\Models\MessageTypes\Image;
 
-$contact = Contact::firstOrCreate(['wa_id' => '5215512345678']);
 $from = ApiPhoneNumber::first();
+$contact = Contact::firstOrCreate([
+  'api_phone_id' => $from->id,
+  'wa_id' => '5215512345678'
+]);
 
 $media = MediaElement::create([
   'api_phone_number_id' => $from->id,
