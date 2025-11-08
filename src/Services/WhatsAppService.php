@@ -33,7 +33,7 @@ class WhatsAppService
 
         $token = $whatsAppMessage->apiPhoneNumber->businessAccount->latestAccessToken();
 
-        $response = self::apiPostRequest(access_token: $token, uri: '/'.$whatsAppMessage->apiPhoneNumber->id.'/messages', payload: $data);
+        $response = self::apiPostRequest(access_token: $token, uri: '/'.$whatsAppMessage->apiPhoneNumber->whatsapp_id.'/messages', payload: $data);
 
         $whatsAppMessage->wa_message_id = $response['messages'][0]['id'] ?? null;
         $whatsAppMessage->save();
