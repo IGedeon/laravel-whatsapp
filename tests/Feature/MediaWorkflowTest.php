@@ -7,6 +7,7 @@ use LaravelWhatsApp\Enums\MessageDirection;
 use LaravelWhatsApp\Enums\MessageType;
 use LaravelWhatsApp\Enums\MimeType;
 use LaravelWhatsApp\Models\ApiPhoneNumber;
+use LaravelWhatsApp\Models\BusinessAccount;
 use LaravelWhatsApp\Models\Contact;
 use LaravelWhatsApp\Models\MediaElement;
 use LaravelWhatsApp\Models\WhatsAppMessage;
@@ -60,7 +61,18 @@ it('can create a complete media workflow from message to upload', function () {
 it('can handle media upload', function () {
     Storage::fake('local');
 
-    $apiPhoneNumber = ApiPhoneNumber::factory()->create();
+    $businessAccount = BusinessAccount::factory()->create();
+
+    $businessAccount->accessTokens()->create([
+        'whatsapp_id' => 'test_whatsapp_id_123',
+        'name' => 'Test Token',
+        'access_token' => 'test_access_token_123',
+        'expires_at' => now()->addDays(60),
+    ]);
+
+    $apiPhoneNumber = ApiPhoneNumber::factory()->create([
+        'business_account_id' => $businessAccount->id,
+    ]);
 
     // Mock the upload API call
     Http::fake([
