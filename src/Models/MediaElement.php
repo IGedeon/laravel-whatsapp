@@ -45,10 +45,21 @@ class MediaElement extends Model
         return $this->morphTo('mediable');
     }
 
+    public function getToken()
+    {
+        $token = $this->apiPhoneNumber->businessAccount->latestAccessToken();
+
+        if (empty($token)) {
+            throw new \Exception('No access token available to mark message as read.');
+        }
+
+        return $token;
+    }
+
     public function getInfo()
     {
-        $url = config('whatsapp.base_url').'/'.config('whatsapp.graph_version').'/'.$this->wa_media_id.'?phone_number_id='.$this->apiPhoneNumber->phone_number_id;
-        $token = $this->apiPhoneNumber->access_token;
+        $url = config('whatsapp.base_url').'/'.config('whatsapp.graph_version').'/'.$this->wa_media_id.'?phone_number_id='.$this->apiPhoneNumber->whatsapp_id;
+        $token = $this->getToken();
 
         $response = Http::retry(times: 3, sleepMilliseconds: 100, when: null, throw: false)->withHeaders([
             'Authorization' => "Bearer $token",
@@ -90,7 +101,7 @@ class MediaElement extends Model
         }
 
         if ($this->url) {
-            $downloadResponse = Http::withToken($this->apiPhoneNumber->access_token)
+            $downloadResponse = Http::withToken($this->getToken())
                 ->get($this->url);
 
             if (! $downloadResponse->ok()) {
@@ -154,10 +165,9 @@ class MediaElement extends Model
 
         file_put_contents($tempPath, $fileContent);
 
-        $url = config('whatsapp.base_url').'/'.config('whatsapp.graph_version').'/'.$this->apiPhoneNumber->phone_number_id.'/media';
-        $token = $this->apiPhoneNumber->access_token;
+        $url = config('whatsapp.base_url').'/'.config('whatsapp.graph_version').'/'.$this->apiPhoneNumber->whatsapp_id.'/media';
 
-        $response = Http::withToken($token)->asMultipart()->post($url, [
+        $response = Http::withToken($this->getToken())->asMultipart()->post($url, [
             [
                 'name' => 'messaging_product',
                 'contents' => 'whatsapp',
