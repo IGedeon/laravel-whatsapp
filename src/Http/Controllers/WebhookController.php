@@ -124,7 +124,7 @@ class WebhookController extends Controller
 
             $message->changeStatus($newStatus);
 
-            $message->save(); //Already saved in changeStatus
+            $message->save(); // Already saved in changeStatus
         }
     }
 

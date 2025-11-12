@@ -2,17 +2,17 @@
 
 namespace LaravelWhatsApp\Models;
 
-use Illuminate\Support\Arr;
-use LaravelWhatsApp\Enums\MessageType;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use LaravelWhatsApp\Enums\MessageStatus;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Support\Arr;
 use LaravelWhatsApp\Enums\MessageDirection;
+use LaravelWhatsApp\Enums\MessageStatus;
+use LaravelWhatsApp\Enums\MessageType;
+use LaravelWhatsApp\Events\WhatsAppMessageStatusChange;
+use LaravelWhatsApp\Models\MessageTypes\Image;
 use LaravelWhatsApp\Models\MessageTypes\Text;
 use LaravelWhatsApp\Services\WhatsAppService;
-use LaravelWhatsApp\Models\MessageTypes\Image;
-use Illuminate\Database\Eloquent\Relations\MorphOne;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use LaravelWhatsApp\Events\WhatsAppMessageStatusChange;
 
 class WhatsAppMessage extends Model
 {
@@ -225,14 +225,16 @@ class WhatsAppMessage extends Model
         $oldStatus = $this->status;
         $this->status = $newStatus;
 
-        if( $oldStatus !== $newStatus ) {
+        if ($oldStatus !== $newStatus) {
             $this->status_timestamp = now();
             $this->save();
             WhatsAppMessageStatusChange::dispatch($this);
+
             return $this;
         }
 
         $this->save();
+
         return $this;
 
     }

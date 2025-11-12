@@ -3,10 +3,10 @@
 namespace LaravelWhatsApp\Services;
 
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Log;
-use LaravelWhatsApp\Models\Contact;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use LaravelWhatsApp\Models\ApiPhoneNumber;
+use LaravelWhatsApp\Models\Contact;
 use LaravelWhatsApp\Models\WhatsAppMessage;
 
 /**
@@ -22,7 +22,7 @@ class WhatsAppService
      */
     public function send(WhatsAppMessage $whatsAppMessage)
     {
-        $whatsAppMessage = $whatsAppMessage->changeStatus(\LaravelWhatsApp\Enums\MessageStatus::SENDING);  
+        $whatsAppMessage = $whatsAppMessage->changeStatus(\LaravelWhatsApp\Enums\MessageStatus::SENDING);
 
         $type = strtolower($whatsAppMessage->type->value);
         $data = [
@@ -35,7 +35,7 @@ class WhatsAppService
         $token = $whatsAppMessage->apiPhoneNumber->businessAccount->latestAccessToken();
 
         $response = self::apiPostRequest(access_token: $token, uri: '/'.$whatsAppMessage->apiPhoneNumber->whatsapp_id.'/messages', payload: $data);
-        if(Arr::get($response, 'error')){
+        if (Arr::get($response, 'error')) {
             $whatsAppMessage = $whatsAppMessage->changeStatus(\LaravelWhatsApp\Enums\MessageStatus::FAILED);
 
             $whatsAppMessage->errors()->createMany([
@@ -52,7 +52,6 @@ class WhatsAppService
         $whatsAppMessage->wa_message_id = $response['messages'][0]['id'] ?? null;
         $whatsAppMessage = $whatsAppMessage->changeStatus(\LaravelWhatsApp\Enums\MessageStatus::SENT);
         // $whatsAppMessage->save(); //Already saved in changeStatus
-        
 
         return true;
     }
@@ -151,7 +150,7 @@ class WhatsAppService
             ]);
 
             $dataBody = $response->json();
-            if(is_array($dataBody)){
+            if (is_array($dataBody)) {
                 return $dataBody;
             }
 
