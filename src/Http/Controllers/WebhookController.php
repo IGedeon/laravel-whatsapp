@@ -107,8 +107,7 @@ class WebhookController extends Controller
                 continue;
             }
 
-            $message->status = MessageStatus::from($statusData['status']);
-            $message->status_timestamp = $statusData['timestamp'];
+            $newStatus = MessageStatus::from($statusData['status']);
 
             // only included with sent status, and one of either delivered or read status
             if (Arr::get($statusData, 'pricing', null) !== null) {
@@ -123,7 +122,9 @@ class WebhookController extends Controller
                 $message->errors()->createMany(Arr::get($statusData, 'errors'));
             }
 
-            $message->save();
+            $message->changeStatus($newStatus);
+
+            $message->save(); //Already saved in changeStatus
         }
     }
 

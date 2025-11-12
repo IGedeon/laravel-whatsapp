@@ -2,10 +2,11 @@
 
 namespace LaravelWhatsApp\Services;
 
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
-use LaravelWhatsApp\Models\ApiPhoneNumber;
 use LaravelWhatsApp\Models\Contact;
+use Illuminate\Support\Facades\Http;
+use LaravelWhatsApp\Models\ApiPhoneNumber;
 use LaravelWhatsApp\Models\WhatsAppMessage;
 
 /**
@@ -17,12 +18,12 @@ class WhatsAppService
     /**
      * Envía un mensaje de texto sencillo.
      *
-     * @param  string  $to  Número de destino en formato internacional (sin +)
-     * @param  string  $body  Texto del mensaje
-     * @param  string|null  $fromLabel  Etiqueta del número configurado (clave en whatsapp.phone_numbers) o null para default
+     * @param  WhatsAppMessage  $whatsAppMessage  Mensaje de WhatsApp a enviar
      */
     public function send(WhatsAppMessage $whatsAppMessage)
     {
+        $whatsAppMessage = $whatsAppMessage->changeStatus(\LaravelWhatsApp\Enums\MessageStatus::SENDING);  
+
         $type = strtolower($whatsAppMessage->type->value);
         $data = [
             'messaging_product' => 'whatsapp',
@@ -34,9 +35,24 @@ class WhatsAppService
         $token = $whatsAppMessage->apiPhoneNumber->businessAccount->latestAccessToken();
 
         $response = self::apiPostRequest(access_token: $token, uri: '/'.$whatsAppMessage->apiPhoneNumber->whatsapp_id.'/messages', payload: $data);
+        if(Arr::get($response, 'error')){
+            $whatsAppMessage = $whatsAppMessage->changeStatus(\LaravelWhatsApp\Enums\MessageStatus::FAILED);
+
+            $whatsAppMessage->errors()->createMany([
+                'code' => Arr::get($response, 'error.code', null),
+                'title' => Arr::get($response, 'error.type', null),
+                'message' => Arr::get($response, 'error.message', null),
+                'error_data' => Arr::get($response, 'error', null),
+                'href' => null,
+            ]);
+
+            return;
+        }
 
         $whatsAppMessage->wa_message_id = $response['messages'][0]['id'] ?? null;
-        $whatsAppMessage->save();
+        $whatsAppMessage = $whatsAppMessage->changeStatus(\LaravelWhatsApp\Enums\MessageStatus::SENT);
+        // $whatsAppMessage->save(); //Already saved in changeStatus
+        
 
         return true;
     }
@@ -135,11 +151,11 @@ class WhatsAppService
             ]);
 
             $dataBody = $response->json();
-            if (isset($dataBody['error']['message'])) {
-                throw new \Exception('WhatsApp API error: '.$dataBody['error']['message']);
+            if(is_array($dataBody)){
+                return $dataBody;
             }
 
-            throw new \Exception('WhatsApp API request failed with status '.$response->status());
+            throw new \Exception('WhatsApp API request failed with status '.$response->status().' and body: '.$response->body());
         }
 
         $json = $response->json();
