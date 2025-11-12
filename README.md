@@ -289,16 +289,33 @@ DownloadMedia::dispatch($media); // queue from config
 
 ---
 
-## Event: `WhatsAppMessageReceived`
 
+## Events
+
+### `WhatsAppMessageReceived`
 Fired on each inbound message. Publish config to override listener.
 ```php
 'listeners' => [
-  'whatsapp_message_received' => \LaravelWhatsApp\Listeners\HandleWhatsAppMessageReceived::class,
+	'whatsapp_message_received' => \LaravelWhatsApp\Listeners\HandleWhatsAppMessageReceived::class,
 ];
 ```
-
 Implement your own listener for custom logic (queueable, heavy processing, etc.).
+
+---
+
+### `WhatsAppMessageStatusChange`
+Fired whenever the status of a WhatsApp message changes (e.g., sent, delivered, read, failed). This event provides access to the updated `WhatsAppMessage` model and allows you to react to delivery confirmations, failures, or media download completion.
+
+**Usage example:**
+```php
+'listeners' => [
+	'whatsapp_message_status_change' => function (\LaravelWhatsApp\Events\WhatsAppMessageStatusChange $event) {
+			// Access the message: $event->message
+			// Check if media was downloaded: $event->mediaDownloaded
+	},
+];
+```
+You can publish the config to override the default listener or attach your own for custom logic (notifications, analytics, etc.).
 
 ---
 
