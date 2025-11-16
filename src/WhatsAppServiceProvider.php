@@ -5,6 +5,7 @@ namespace LaravelWhatsApp;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use LaravelWhatsApp\Events\WhatsAppMessageReceived;
+use LaravelWhatsApp\Events\WhatsAppMessageStatusChange;
 use LaravelWhatsApp\Services\WhatsAppService;
 
 class WhatsAppServiceProvider extends ServiceProvider
@@ -45,9 +46,14 @@ class WhatsAppServiceProvider extends ServiceProvider
         $this->loadRoutesFrom(__DIR__.'/Http/routes.php');
 
         // Registro dinámico de listener si está configurado
-        $listener = config('whatsapp.listeners.whatsapp_message_received');
-        if ($listener) {
-            Event::listen(WhatsAppMessageReceived::class, $listener);
+        $messageReceivedListener = config('whatsapp.listeners.whatsapp_message_received');
+        if ($messageReceivedListener) {
+            Event::listen(WhatsAppMessageReceived::class, $messageReceivedListener);
+        }
+
+        $messageStatusChangeListener = config('whatsapp.listeners.whatsapp_message_status_change');
+        if ($messageStatusChangeListener) {
+            Event::listen(WhatsAppMessageStatusChange::class, $messageStatusChangeListener);
         }
     }
 }

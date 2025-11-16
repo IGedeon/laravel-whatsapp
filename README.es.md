@@ -340,16 +340,33 @@ DownloadMedia::dispatch($media); // cola desde config
 
 ---
 
-## Evento: `WhatsAppMessageReceived`
 
-Se dispara por cada mensaje entrante. Publica config para sobrescribir listener.
+## Eventos
+
+### `WhatsAppMessageReceived`
+Se dispara por cada mensaje entrante. Publica el config para sobrescribir el listener por defecto.
 ```php
 'listeners' => [
   'whatsapp_message_received' => \LaravelWhatsApp\Listeners\HandleWhatsAppMessageReceived::class,
 ];
 ```
+Puedes implementar tu propio listener para lógica personalizada (colas, procesamiento pesado, etc.).
 
-Implementa tu listener para lógica personalizada (queue, heavy processing, etc.).
+---
+
+### `WhatsAppMessageStatusChange`
+Se dispara cada vez que cambia el estado de un mensaje de WhatsApp (por ejemplo: enviado, entregado, leído, fallido). Este evento provee acceso al modelo actualizado `WhatsAppMessage` y permite reaccionar a confirmaciones de entrega, fallos o finalización de descarga de medios.
+
+**Ejemplo de uso:**
+```php
+'listeners' => [
+  'whatsapp_message_status_change' => function (\LaravelWhatsApp\Events\WhatsAppMessageStatusChange $event) {
+      // Accede al mensaje: $event->message
+      // Verifica si la media fue descargada: $event->mediaDownloaded
+  },
+];
+```
+Puedes publicar el config para sobrescribir el listener por defecto o adjuntar el tuyo para lógica personalizada (notificaciones, analíticas, etc.).
 
 ---
 

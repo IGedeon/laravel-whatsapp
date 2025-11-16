@@ -26,6 +26,7 @@ return [
     // Event listeners (can be overridden in published config)
     'listeners' => [
         'whatsapp_message_received' => \LaravelWhatsApp\Listeners\HandleWhatsAppMessageReceived::class,
+        'whatsapp_message_status_change' => \LaravelWhatsApp\Listeners\HandleWhatsAppMessageStatusChange::class,
     ],
 
     'mark_messages_as_read_immediately' => env('WHATSAPP_MARK_MESSAGES_AS_READ_IMMEDIATELY', false),

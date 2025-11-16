@@ -9,6 +9,7 @@ use Illuminate\Support\Arr;
 use LaravelWhatsApp\Enums\MessageDirection;
 use LaravelWhatsApp\Enums\MessageStatus;
 use LaravelWhatsApp\Enums\MessageType;
+use LaravelWhatsApp\Events\WhatsAppMessageStatusChange;
 use LaravelWhatsApp\Models\MessageTypes\Image;
 use LaravelWhatsApp\Models\MessageTypes\Text;
 use LaravelWhatsApp\Services\WhatsAppService;
@@ -170,7 +171,7 @@ class WhatsAppMessage extends Model
         return $this;
     }
 
-    public function send()
+    public function send(): self
     {
         if ($this->direction !== MessageDirection::OUTGOING) {
             throw new \Exception('Only outgoing messages can be sent.');
@@ -181,6 +182,8 @@ class WhatsAppMessage extends Model
         // Send the message using the WhatsApp API
         $service = new WhatsAppService;
         $service->send($this);
+
+        return $this->refresh();
     }
 
     public function markAsRead(bool $typingIndicator = false)
@@ -217,5 +220,23 @@ class WhatsAppMessage extends Model
             // Add other message types as needed
             default => throw new \Exception("Unsupported message type: {$this->type}"),
         };
+    }
+
+    public function changeStatus(MessageStatus $newStatus): self
+    {
+        $oldStatus = $this->status;
+        $this->status = $newStatus;
+
+        if ($oldStatus !== $newStatus) {
+            $this->status_timestamp = now();
+            $this->save();
+            WhatsAppMessageStatusChange::dispatch($this, $newStatus, $oldStatus);
+
+            return $this;
+        }
+
+        $this->save();
+
+        return $this;
     }
 }
