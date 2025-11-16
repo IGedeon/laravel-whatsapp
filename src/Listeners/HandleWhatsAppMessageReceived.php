@@ -6,13 +6,12 @@ use Illuminate\Support\Facades\Log;
 use LaravelWhatsApp\Events\WhatsAppMessageReceived;
 
 /**
- * Listener por defecto de referencia. Puedes publicar y reemplazar.
+ * Listener por defecto para manejar mensajes recibidos de WhatsApp.
  */
 class HandleWhatsAppMessageReceived
 {
     public function handle(WhatsAppMessageReceived $event): void
     {
-        // Ejemplo mínimo: loguear
         Log::info('WhatsAppMessageReceived listener', [
             'message_id' => $event->message->id ?? null,
             'wa_message_id' => $event->message->wa_message_id ?? null,

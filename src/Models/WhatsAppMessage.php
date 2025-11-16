@@ -171,7 +171,7 @@ class WhatsAppMessage extends Model
         return $this;
     }
 
-    public function send()
+    public function send(): self
     {
         if ($this->direction !== MessageDirection::OUTGOING) {
             throw new \Exception('Only outgoing messages can be sent.');
@@ -182,6 +182,8 @@ class WhatsAppMessage extends Model
         // Send the message using the WhatsApp API
         $service = new WhatsAppService;
         $service->send($this);
+
+        return $this->refresh();
     }
 
     public function markAsRead(bool $typingIndicator = false)
@@ -228,7 +230,7 @@ class WhatsAppMessage extends Model
         if ($oldStatus !== $newStatus) {
             $this->status_timestamp = now();
             $this->save();
-            WhatsAppMessageStatusChange::dispatch($this);
+            WhatsAppMessageStatusChange::dispatch($this, $newStatus, $oldStatus);
 
             return $this;
         }
@@ -236,6 +238,5 @@ class WhatsAppMessage extends Model
         $this->save();
 
         return $this;
-
     }
 }
