@@ -38,7 +38,7 @@ class WhatsAppService
         if (Arr::get($response, 'error')) {
             $whatsAppMessage = $whatsAppMessage->changeStatus(\LaravelWhatsApp\Enums\MessageStatus::FAILED);
 
-            $whatsAppMessage->errors()->createMany([
+            $whatsAppMessage->errors()->create([
                 'code' => Arr::get($response, 'error.code', null),
                 'title' => Arr::get($response, 'error.type', null),
                 'message' => Arr::get($response, 'error.message', null),
