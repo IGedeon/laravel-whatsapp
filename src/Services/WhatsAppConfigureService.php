@@ -113,8 +113,7 @@ class WhatsAppConfigureService
             ]
         );
 
-        if (Arr::get($subscribeAction, 'success') === true) {
-            $app = MetaApp::updateOrCreate(
+        $app = MetaApp::updateOrCreate(
                 ['meta_app_id' => $this->appId],
                 [
                     'name' => $appData['name'],
@@ -123,39 +122,55 @@ class WhatsAppConfigureService
                 ]
             );
 
-            $token = AccessToken::updateOrCreate(
-                ['access_token' => $this->accessToken],
-                [
-                    'whatsapp_id' => $tokenData['id'],
-                    'name' => $tokenData['name'],
-                    'meta_app_id' => $app->id,
-                    'expires_at' => $scopesData['data']['expires_at'] == 0 ? null : $scopesData['data']['expires_at'],
-                ]
-            );
-
-            $waba = BusinessAccount::firstOrCreate(
-                ['whatsapp_id' => $wabaData['id']]
-            );
-
-            $wabaData = $this->whatsAppService::apiGetRequest(
-                access_token: $this->accessToken,
-                uri: "/{$this->wabaId}?fields=id,name,currency,timezone_id,message_template_namespace,message_templates,phone_numbers,subscribed_apps"
-            );
-
-            $fillData = $waba->fillFromMeta($wabaData, returnSelf: false);
-
-            $waba->accessTokens()->syncWithoutDetaching([$token->id]);
+        if (Arr::get($subscribeAction, 'success') !== true) {
+            if($app->wasRecentlyCreated){
+                $app->delete();
+            }else{
+                $app->update([
+                    'name' => $app->getOriginal('name'),
+                    'app_secret' => $app->getOriginal('app_secret'),
+                    'verify_token' => $app->getOriginal('verify_token'),
+                ]);
+            }
 
             return [
-                'success' => true,
-                'message' => 'WABA successfully subscribed to the App.',
-                'data' => $fillData,
+                'success' => false,
+                'message' => 'Failed to subscribe WABA to the App.',
             ];
         }
 
+        
+
+        $token = AccessToken::updateOrCreate(
+            ['access_token' => $this->accessToken],
+            [
+                'whatsapp_id' => $tokenData['id'],
+                'name' => $tokenData['name'],
+                'meta_app_id' => $app->id,
+                'expires_at' => $scopesData['data']['expires_at'] == 0 ? null : $scopesData['data']['expires_at'],
+            ]
+        );
+
+        $waba = BusinessAccount::firstOrCreate(
+            ['whatsapp_id' => $wabaData['id']]
+        );
+
+        $wabaData = $this->whatsAppService::apiGetRequest(
+            access_token: $this->accessToken,
+            uri: "/{$this->wabaId}?fields=id,name,currency,timezone_id,message_template_namespace,message_templates,phone_numbers,subscribed_apps"
+        );
+
+        $fillData = $waba->fillFromMeta($wabaData, returnSelf: false);
+
+        $waba->accessTokens()->syncWithoutDetaching([$token->id]);
+
         return [
-            'success' => false,
-            'message' => 'Failed to subscribe WABA to the App.',
+            'success' => true,
+            'message' => 'WABA successfully subscribed to the App.',
+            'data' => $fillData,
         ];
+        
+
+        
     }
 }
