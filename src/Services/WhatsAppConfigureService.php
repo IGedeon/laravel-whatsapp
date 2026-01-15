@@ -114,18 +114,18 @@ class WhatsAppConfigureService
         );
 
         $app = MetaApp::updateOrCreate(
-                ['meta_app_id' => $this->appId],
-                [
-                    'name' => $appData['name'],
-                    'app_secret' => $this->appSecret,
-                    'verify_token' => $this->verifyToken,
-                ]
-            );
+            ['meta_app_id' => $this->appId],
+            [
+                'name' => $appData['name'],
+                'app_secret' => $this->appSecret,
+                'verify_token' => $this->verifyToken,
+            ]
+        );
 
         if (Arr::get($subscribeAction, 'success') !== true) {
-            if($app->wasRecentlyCreated){
+            if ($app->wasRecentlyCreated) {
                 $app->delete();
-            }else{
+            } else {
                 $app->update([
                     'name' => $app->getOriginal('name'),
                     'app_secret' => $app->getOriginal('app_secret'),
@@ -138,8 +138,6 @@ class WhatsAppConfigureService
                 'message' => 'Failed to subscribe WABA to the App.',
             ];
         }
-
-        
 
         $token = AccessToken::updateOrCreate(
             ['access_token' => $this->accessToken],
@@ -169,8 +167,6 @@ class WhatsAppConfigureService
             'message' => 'WABA successfully subscribed to the App.',
             'data' => $fillData,
         ];
-        
 
-        
     }
 }
