@@ -46,7 +46,7 @@ class WhatsAppService
                 'href' => null,
             ]);
 
-            return;
+            return false;
         }
 
         $whatsAppMessage->wa_message_id = $response['messages'][0]['id'] ?? null;
