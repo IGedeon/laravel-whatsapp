@@ -178,11 +178,15 @@ class WebhookController extends Controller
 
                 $contactModel = config('whatsapp.contact_model');
                 foreach ($contacts_ as $contactData) {
-                    $contact = $contactModel::firstOrCreate([
-                        'api_phone_id' => $apiPhoneNumber->id,
-                        'wa_id' => $contactData['wa_id'] ?? '',
-                        'name' => $contactData['profile']['name'] ?? '',
-                    ]);
+                    $contact = $contactModel::firstOrCreate(
+                        [
+                            'api_phone_id' => $apiPhoneNumber->id,
+                            'wa_id' => $contactData['wa_id'] ?? '',
+                        ],
+                        [
+                            'name' => $contactData['profile']['name'] ?? ''
+                        ],
+                    );
                     $contacts->push($contact);
                 }
 
