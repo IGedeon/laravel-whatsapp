@@ -11,6 +11,8 @@ use LaravelWhatsApp\Enums\MessageDirection;
 use LaravelWhatsApp\Enums\MessageStatus;
 use LaravelWhatsApp\Enums\MessageType;
 use LaravelWhatsApp\Events\WhatsAppMessageStatusChange;
+use LaravelWhatsApp\Models\MessageTypes\Audio;
+use LaravelWhatsApp\Models\MessageTypes\Document;
 use LaravelWhatsApp\Models\MessageTypes\Image;
 use LaravelWhatsApp\Models\MessageTypes\Text;
 use LaravelWhatsApp\Services\WhatsAppService;
@@ -217,6 +219,16 @@ class WhatsAppMessage extends Model
                 from: $apiPhoneClass::find($this->api_phone_number_id),
                 mediaId: $this->getContentProperty('id') ?? '',
                 caption: $this->getContentProperty('caption') ?? ''
+            ),
+            MessageType::AUDIO => Audio::createFromId(
+                to: $contactClass::find($this->contact_id),
+                from: $apiPhoneClass::find($this->api_phone_number_id),
+                mediaId: $this->getContentProperty('id') ?? ''
+            ),
+            MessageType::DOCUMENT => Document::createFromId(
+                to: $contactClass::find($this->contact_id),
+                from: $apiPhoneClass::find($this->api_phone_number_id),
+                mediaId: $this->getContentProperty('id') ?? ''
             ),
             // Add other message types as needed
             default => throw new \Exception("Unsupported message type: {$this->type}"),

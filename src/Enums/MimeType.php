@@ -9,6 +9,7 @@ enum MimeType: string
     case AUDIO_MPEG = 'audio/mpeg';
     case AUDIO_MP4 = 'audio/mp4';
     case AUDIO_OGG = 'audio/ogg';
+    case AUDIO_OGG_OPUS = 'audio/ogg; codecs=opus';
 
     case DOCUMENT_TEXT = 'text/plain';
     case DOCUMENT_XLS = 'application/vnd.ms-excel';
@@ -46,6 +47,7 @@ enum MimeType: string
                 self::AUDIO_MPEG,
                 self::AUDIO_MP4,
                 self::AUDIO_OGG,
+                self::AUDIO_OGG_OPUS,
             ],
             'DOCUMENT' => [
                 self::DOCUMENT_TEXT,
@@ -78,7 +80,8 @@ enum MimeType: string
             self::AUDIO_AMR => 'amr',
             self::AUDIO_MPEG => 'mp3',
             self::AUDIO_MP4 => 'mp4',
-            self::AUDIO_OGG => 'ogg',
+            self::AUDIO_OGG, 
+            self::AUDIO_OGG_OPUS => 'ogg',
             self::DOCUMENT_TEXT => 'txt',
             self::DOCUMENT_XLS => 'xls',
             self::DOCUMENT_XLSX => 'xlsx',
