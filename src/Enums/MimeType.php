@@ -80,7 +80,7 @@ enum MimeType: string
             self::AUDIO_AMR => 'amr',
             self::AUDIO_MPEG => 'mp3',
             self::AUDIO_MP4 => 'mp4',
-            self::AUDIO_OGG, 
+            self::AUDIO_OGG,
             self::AUDIO_OGG_OPUS => 'ogg',
             self::DOCUMENT_TEXT => 'txt',
             self::DOCUMENT_XLS => 'xls',
