@@ -5,8 +5,10 @@ namespace LaravelWhatsApp\Services;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use LaravelWhatsApp\Enums\MessageStatus;
 use LaravelWhatsApp\Models\ApiPhoneNumber;
 use LaravelWhatsApp\Models\Contact;
+use LaravelWhatsApp\Models\MessageTypes\Template;
 use LaravelWhatsApp\Models\WhatsAppMessage;
 
 /**
@@ -22,7 +24,7 @@ class WhatsAppService
      */
     public function send(WhatsAppMessage $whatsAppMessage)
     {
-        $whatsAppMessage = $whatsAppMessage->changeStatus(\LaravelWhatsApp\Enums\MessageStatus::SENDING);
+        $whatsAppMessage = $whatsAppMessage->changeStatus(MessageStatus::SENDING);
 
         $type = strtolower($whatsAppMessage->type->value);
         $data = [
@@ -36,7 +38,7 @@ class WhatsAppService
 
         $response = self::apiPostRequest(access_token: $token, uri: '/'.$whatsAppMessage->apiPhoneNumber->whatsapp_id.'/messages', payload: $data);
         if (Arr::get($response, 'error')) {
-            $whatsAppMessage = $whatsAppMessage->changeStatus(\LaravelWhatsApp\Enums\MessageStatus::FAILED);
+            $whatsAppMessage = $whatsAppMessage->changeStatus(MessageStatus::FAILED);
 
             $whatsAppMessage->errors()->create([
                 'code' => Arr::get($response, 'error.code', null),
@@ -50,7 +52,7 @@ class WhatsAppService
         }
 
         $whatsAppMessage->wa_message_id = $response['messages'][0]['id'] ?? null;
-        $whatsAppMessage = $whatsAppMessage->changeStatus(\LaravelWhatsApp\Enums\MessageStatus::SENT);
+        $whatsAppMessage = $whatsAppMessage->changeStatus(MessageStatus::SENT);
         // $whatsAppMessage->save(); //Already saved in changeStatus
 
         return true;
@@ -71,7 +73,7 @@ class WhatsAppService
             $from = $class::getDefault();
         }
 
-        $message = \LaravelWhatsApp\Models\MessageTypes\Template::create($to, $from, $templateName, $languageCode, $components);
+        $message = Template::create($to, $from, $templateName, $languageCode, $components);
 
         return $this->send($message);
     }
@@ -93,7 +95,7 @@ class WhatsAppService
             ];
         }
 
-        $message->status = \LaravelWhatsApp\Enums\MessageStatus::READ;
+        $message->status = MessageStatus::READ;
         $message->status_timestamp = now();
 
         $token = $message->apiPhoneNumber->businessAccount->latestAccessToken();

@@ -4,6 +4,7 @@ namespace LaravelWhatsApp\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use LaravelWhatsApp\Services\WhatsAppService;
 
 class MetaApp extends Model
 {
@@ -20,7 +21,7 @@ class MetaApp extends Model
 
     public function fillFromMeta()
     {
-        $service = new \LaravelWhatsApp\Services\WhatsAppService;
+        $service = new WhatsAppService;
         $data = $service->getAppInfo($this);
         $this->update([
             'name' => $data['name'] ?? null,

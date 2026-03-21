@@ -1,5 +1,7 @@
 <?php
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use LaravelWhatsApp\Enums\MimeType;
@@ -32,9 +34,9 @@ it('casts datetime fields properly', function () {
         'expired_at' => '2025-10-30 12:00:00',
     ]);
 
-    expect($mediaElement->downloaded_at)->toBeInstanceOf(\Carbon\Carbon::class)
-        ->and($mediaElement->uploaded_at)->toBeInstanceOf(\Carbon\Carbon::class)
-        ->and($mediaElement->expired_at)->toBeInstanceOf(\Carbon\Carbon::class);
+    expect($mediaElement->downloaded_at)->toBeInstanceOf(Carbon::class)
+        ->and($mediaElement->uploaded_at)->toBeInstanceOf(Carbon::class)
+        ->and($mediaElement->expired_at)->toBeInstanceOf(Carbon::class);
 });
 
 it('returns early if wa_media_id already exists on upload', function () {
@@ -63,14 +65,14 @@ it('throws exception when file does not exist on upload', function () {
     Storage::fake('local');
 
     expect(fn () => $mediaElement->upload('nonexistent/file.jpg'))
-        ->toThrow(\InvalidArgumentException::class, 'El archivo no existe');
+        ->toThrow(InvalidArgumentException::class, 'El archivo no existe');
 });
 
 it('has correct relationship method', function () {
     $mediaElement = new MediaElement;
 
     // Test that mediable relationship exists and returns MorphTo
-    expect($mediaElement->mediable())->toBeInstanceOf(\Illuminate\Database\Eloquent\Relations\MorphTo::class);
+    expect($mediaElement->mediable())->toBeInstanceOf(MorphTo::class);
 });
 
 it('has upload method that checks for existing media id', function () {

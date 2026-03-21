@@ -3,13 +3,17 @@
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
+use LaravelWhatsApp\Enums\MessageDirection;
 use LaravelWhatsApp\Enums\MessageStatus;
+use LaravelWhatsApp\Events\WhatsAppMessageReceived;
 use LaravelWhatsApp\Http\Middleware\VerifyMetaSignature;
 use LaravelWhatsApp\Models\AccessToken;
 use LaravelWhatsApp\Models\ApiPhoneNumber;
+use LaravelWhatsApp\Models\Contact;
 use LaravelWhatsApp\Models\MetaApp;
 use LaravelWhatsApp\Models\WhatsAppMessage;
 use LaravelWhatsApp\Models\WhatsAppMessageError;
+use LaravelWhatsApp\Services\WhatsAppService;
 
 function getWebhookTextPayloadRaw(): string
 {
@@ -56,15 +60,15 @@ it('can receive a text message via webhook', function () {
         'type' => 'text',
         'direction' => 'incoming',
     ]);
-    $stored = \LaravelWhatsApp\Models\WhatsAppMessage::where('wa_message_id', 'wamid.HBgMNTczMDA3ODIwNzYyFQIAEhgWM0VCMDBCMDUwMEI5M0E1MjE1RDEyOAA=')->first();
+    $stored = WhatsAppMessage::where('wa_message_id', 'wamid.HBgMNTczMDA3ODIwNzYyFQIAEhgWM0VCMDBCMDUwMEI5M0E1MjE1RDEyOAA=')->first();
     expect($stored)->not->toBeNull();
     expect($stored->getContentProperty('body'))->toBe('Hola Mundo');
-    Event::assertDispatched(\LaravelWhatsApp\Events\WhatsAppMessageReceived::class, function ($event) use ($stored) {
+    Event::assertDispatched(WhatsAppMessageReceived::class, function ($event) use ($stored) {
         return $event->message->id === $stored->id;
     });
 });
 
-class CustomContactForTest extends \LaravelWhatsApp\Models\Contact
+class CustomContactForTest extends Contact
 {
     public static $customUsed = false;
 
@@ -73,7 +77,7 @@ class CustomContactForTest extends \LaravelWhatsApp\Models\Contact
         self::$customUsed = true;
 
         // Call base Contact model directly to avoid recursion
-        return \LaravelWhatsApp\Models\Contact::firstOrCreate($attributes, $values);
+        return Contact::firstOrCreate($attributes, $values);
     }
 }
 
@@ -85,7 +89,7 @@ it('uses custom contact model if configured', function () {
     $this->withoutMiddleware(VerifyMetaSignature::class);
     $this->postJson('/whatsapp/webhook', $payload);
 
-    $stored = \LaravelWhatsApp\Models\WhatsAppMessage::first();
+    $stored = WhatsAppMessage::first();
 
     expect($stored)->not->toBeNull();
     expect($stored->contact)->not->toBeNull();
@@ -123,7 +127,7 @@ it('can recieve a image message via webhook', function () {
     ]);
 
     // Message content assertions
-    $stored = \LaravelWhatsApp\Models\WhatsAppMessage::where('wa_message_id', 'wamid.HBgMNTczMDA3ODIwNzYyFQIAEhggQUNDNjFENDhENTY1QTRERjZENTNCNzhDNjdFOTEyRkYA')->first();
+    $stored = WhatsAppMessage::where('wa_message_id', 'wamid.HBgMNTczMDA3ODIwNzYyFQIAEhggQUNDNjFENDhENTY1QTRERjZENTNCNzhDNjdFOTEyRkYA')->first();
     expect($stored)->not->toBeNull();
     expect($stored->getContentProperty('id'))->toBe('MEDIA_ID_EXAMPLE');
 
@@ -134,7 +138,7 @@ it('can recieve a image message via webhook', function () {
     ]);
 
     // verificar evento disparado WhatsAppMessageReceived
-    Event::assertDispatched(\LaravelWhatsApp\Events\WhatsAppMessageReceived::class, function ($event) use ($stored) {
+    Event::assertDispatched(WhatsAppMessageReceived::class, function ($event) use ($stored) {
         return $event->message->id === $stored->id &&
                $event->media !== null &&
                $event->media->wa_media_id === 'MEDIA_ID_EXAMPLE' &&
@@ -147,7 +151,7 @@ it('can mark a message as read', function () {
     $message = WhatsAppMessage::factory()->create([
         'api_phone_number_id' => $this->phoneNumber->id,
         'status' => MessageStatus::DELIVERED,
-        'direction' => \LaravelWhatsApp\Enums\MessageDirection::INCOMING,
+        'direction' => MessageDirection::INCOMING,
     ]);
 
     // Reemplazar el fake global para poder hacer aserciones detalladas
@@ -155,7 +159,7 @@ it('can mark a message as read', function () {
         '*' => Http::response(['messages' => [['id' => 'any-id']]], 200),
     ]);
 
-    $service = new \LaravelWhatsApp\Services\WhatsAppService;
+    $service = new WhatsAppService;
     $service->markAsRead($message);
 
     // Estado del modelo
@@ -182,7 +186,7 @@ it('can mark a message as read', function () {
     });
 });
 
-class CustomApiPhoneNumberForTest extends \LaravelWhatsApp\Models\ApiPhoneNumber
+class CustomApiPhoneNumberForTest extends ApiPhoneNumber
 {
     public static $customUsed = false;
 
@@ -191,7 +195,7 @@ class CustomApiPhoneNumberForTest extends \LaravelWhatsApp\Models\ApiPhoneNumber
         self::$customUsed = true;
 
         // Call base ApiPhoneNumber model directly to avoid recursion
-        return \LaravelWhatsApp\Models\ApiPhoneNumber::firstOrCreate($attributes, $values);
+        return ApiPhoneNumber::firstOrCreate($attributes, $values);
     }
 }
 
@@ -203,7 +207,7 @@ it('uses custom ApiPhoneNumber model if configured', function () {
     $this->withoutMiddleware(VerifyMetaSignature::class);
     $this->postJson('/whatsapp/webhook', $payload);
 
-    $stored = \LaravelWhatsApp\Models\WhatsAppMessage::first();
+    $stored = WhatsAppMessage::first();
     expect($stored)->not->toBeNull();
     expect($stored->apiPhoneNumber)->not->toBeNull();
     expect($stored->apiPhoneNumber)->toBeInstanceOf(CustomApiPhoneNumberForTest::class);
@@ -247,7 +251,7 @@ it('rejects request with invalid signature', function () {
 });
 
 it('can recieve errors via webhook', function () {
-    $this->withoutMiddleware(\LaravelWhatsApp\Http\Middleware\VerifyMetaSignature::class);
+    $this->withoutMiddleware(VerifyMetaSignature::class);
     $stubPath = realpath(__DIR__.'/../../stubs/webhook_failed_to_be_delivered.json');
     $this->assertNotFalse($stubPath, 'Stub file not found');
     $payload = json_decode(file_get_contents($stubPath), true);

@@ -2,6 +2,7 @@
 
 namespace LaravelWhatsApp\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
@@ -10,6 +11,8 @@ use LaravelWhatsApp\Enums\MessageDirection;
 use LaravelWhatsApp\Enums\MessageStatus;
 use LaravelWhatsApp\Enums\MessageType;
 use LaravelWhatsApp\Events\WhatsAppMessageStatusChange;
+use LaravelWhatsApp\Models\MessageTypes\Audio;
+use LaravelWhatsApp\Models\MessageTypes\Document;
 use LaravelWhatsApp\Models\MessageTypes\Image;
 use LaravelWhatsApp\Models\MessageTypes\Text;
 use LaravelWhatsApp\Services\WhatsAppService;
@@ -115,16 +118,16 @@ class WhatsAppMessage extends Model
      * Helper for Attribute getter
      */
     // Renamed from contentAttribute to makeContentAttribute to avoid Laravel treating it as a mutator/accessor for 'content'
-    public static function makeContentAttribute(?string $key = null, $default = null): \Illuminate\Database\Eloquent\Casts\Attribute
+    public static function makeContentAttribute(?string $key = null, $default = null): Attribute
     {
         // If Laravel introspects mutators and invokes without arguments, return a trivial attribute
         if ($key === null) {
-            return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            return Attribute::make(
                 get: fn ($value) => $value,
             );
         }
 
-        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+        return Attribute::make(
             get: function ($value, array $attributes) use ($key, $default) {
                 $raw = $attributes['content'] ?? [];
                 if (is_string($raw)) {
@@ -216,6 +219,16 @@ class WhatsAppMessage extends Model
                 from: $apiPhoneClass::find($this->api_phone_number_id),
                 mediaId: $this->getContentProperty('id') ?? '',
                 caption: $this->getContentProperty('caption') ?? ''
+            ),
+            MessageType::AUDIO => Audio::createFromId(
+                to: $contactClass::find($this->contact_id),
+                from: $apiPhoneClass::find($this->api_phone_number_id),
+                mediaId: $this->getContentProperty('id') ?? ''
+            ),
+            MessageType::DOCUMENT => Document::createFromId(
+                to: $contactClass::find($this->contact_id),
+                from: $apiPhoneClass::find($this->api_phone_number_id),
+                mediaId: $this->getContentProperty('id') ?? ''
             ),
             // Add other message types as needed
             default => throw new \Exception("Unsupported message type: {$this->type}"),

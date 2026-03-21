@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -12,7 +13,7 @@ use LaravelWhatsApp\Models\Contact;
 use LaravelWhatsApp\Models\MediaElement;
 use LaravelWhatsApp\Models\WhatsAppMessage;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 beforeEach(function () {
     Config::set('whatsapp.base_url', 'https://graph.facebook.com');
