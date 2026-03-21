@@ -4,6 +4,7 @@ namespace LaravelWhatsApp\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ApiPhoneNumber extends Model
 {
@@ -42,7 +43,7 @@ class ApiPhoneNumber extends Model
         return $phoneNumbers->first();
     }
 
-    public function businessAccount(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function businessAccount(): BelongsTo
     {
         return $this->belongsTo(BusinessAccount::class, 'business_account_id', 'id');
     }

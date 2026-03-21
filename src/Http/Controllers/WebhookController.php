@@ -184,7 +184,7 @@ class WebhookController extends Controller
                             'wa_id' => $contactData['wa_id'] ?? '',
                         ],
                         [
-                            'name' => $contactData['profile']['name'] ?? ''
+                            'name' => $contactData['profile']['name'] ?? '',
                         ],
                     );
                     $contacts->push($contact);

@@ -4,6 +4,8 @@ namespace LaravelWhatsApp;
 
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use LaravelWhatsApp\Console\Commands\Configure;
+use LaravelWhatsApp\Console\Commands\WhatsAppInstall;
 use LaravelWhatsApp\Events\WhatsAppMessageReceived;
 use LaravelWhatsApp\Events\WhatsAppMessageStatusChange;
 use LaravelWhatsApp\Services\WhatsAppService;
@@ -37,8 +39,8 @@ class WhatsAppServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([
-                \LaravelWhatsApp\Console\Commands\WhatsAppInstall::class,
-                \LaravelWhatsApp\Console\Commands\Configure::class,
+                WhatsAppInstall::class,
+                Configure::class,
             ]);
         }
 

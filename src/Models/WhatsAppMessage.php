@@ -2,6 +2,7 @@
 
 namespace LaravelWhatsApp\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
@@ -115,16 +116,16 @@ class WhatsAppMessage extends Model
      * Helper for Attribute getter
      */
     // Renamed from contentAttribute to makeContentAttribute to avoid Laravel treating it as a mutator/accessor for 'content'
-    public static function makeContentAttribute(?string $key = null, $default = null): \Illuminate\Database\Eloquent\Casts\Attribute
+    public static function makeContentAttribute(?string $key = null, $default = null): Attribute
     {
         // If Laravel introspects mutators and invokes without arguments, return a trivial attribute
         if ($key === null) {
-            return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            return Attribute::make(
                 get: fn ($value) => $value,
             );
         }
 
-        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+        return Attribute::make(
             get: function ($value, array $attributes) use ($key, $default) {
                 $raw = $attributes['content'] ?? [];
                 if (is_string($raw)) {

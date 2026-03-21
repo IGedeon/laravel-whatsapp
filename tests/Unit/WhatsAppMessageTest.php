@@ -6,6 +6,7 @@ use LaravelWhatsApp\Models\ApiPhoneNumber;
 use LaravelWhatsApp\Models\Contact;
 use LaravelWhatsApp\Models\MessageTypes\Image;
 use LaravelWhatsApp\Models\MessageTypes\Text;
+use LaravelWhatsApp\Models\WhatsAppMessage;
 
 it('inicializa mensaje de texto correctamente', function () {
     $contact = new Contact(['id' => 1]);
@@ -50,7 +51,7 @@ it('inicializa mensaje de imagen con ID', function () {
 
 it('has mediable relationship using morphOne', function () {
     // Test that the method exists and is a relationship
-    $msg = new \LaravelWhatsApp\Models\WhatsAppMessage;
+    $msg = new WhatsAppMessage;
 
     expect(method_exists($msg, 'media'))->toBeTrue();
 });
@@ -71,7 +72,7 @@ it('can create message with null parameters', function () {
     $contact = new Contact(['id' => 1]);
     $apiPhone = new ApiPhoneNumber(['id' => 2]);
 
-    $msg = new \LaravelWhatsApp\Models\WhatsAppMessage;
+    $msg = new WhatsAppMessage;
 
     expect(function () use ($msg, $contact, $apiPhone) {
         $msg->initMessage(
@@ -81,7 +82,7 @@ it('can create message with null parameters', function () {
             $apiPhone,
             ['text' => ['body' => 'Test']]
         );
-    })->not->toThrow(\Exception::class);
+    })->not->toThrow(Exception::class);
 
     expect($msg->direction)->toBe(MessageDirection::OUTGOING);
 });

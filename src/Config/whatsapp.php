@@ -1,5 +1,10 @@
 <?php
 
+use LaravelWhatsApp\Listeners\HandleWhatsAppMessageReceived;
+use LaravelWhatsApp\Listeners\HandleWhatsAppMessageStatusChange;
+use LaravelWhatsApp\Models\ApiPhoneNumber;
+use LaravelWhatsApp\Models\Contact;
+
 return [
     // Webhook subscribe URL built from APP_URL. Not exposed directly as env var.
     'subscribe_url' => env('APP_URL').'/whatsapp/webhook',
@@ -25,14 +30,14 @@ return [
 
     // Event listeners (can be overridden in published config)
     'listeners' => [
-        'whatsapp_message_received' => \LaravelWhatsApp\Listeners\HandleWhatsAppMessageReceived::class,
-        'whatsapp_message_status_change' => \LaravelWhatsApp\Listeners\HandleWhatsAppMessageStatusChange::class,
+        'whatsapp_message_received' => HandleWhatsAppMessageReceived::class,
+        'whatsapp_message_status_change' => HandleWhatsAppMessageStatusChange::class,
     ],
 
     'mark_messages_as_read_immediately' => env('WHATSAPP_MARK_MESSAGES_AS_READ_IMMEDIATELY', false),
     'expire_media_days' => env('WHATSAPP_EXPIRE_MEDIA_DAYS', 15),
 
     // Allow overriding the Contact and ApiPhoneNumber model classes
-    'contact_model' => \LaravelWhatsApp\Models\Contact::class,
-    'apiphone_model' => \LaravelWhatsApp\Models\ApiPhoneNumber::class,
+    'contact_model' => Contact::class,
+    'apiphone_model' => ApiPhoneNumber::class,
 ];

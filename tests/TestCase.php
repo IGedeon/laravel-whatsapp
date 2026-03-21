@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use Illuminate\Foundation\Application;
 use LaravelWhatsApp\WhatsAppServiceProvider;
 use Orchestra\Testbench\TestCase as TestbenchTestCase;
 
@@ -10,7 +11,7 @@ abstract class TestCase extends TestbenchTestCase
     /**
      * Register package service providers.
      *
-     * @param  \Illuminate\Foundation\Application  $app
+     * @param  Application  $app
      * @return array<int, class-string>
      */
     protected function getPackageProviders($app)

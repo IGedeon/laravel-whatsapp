@@ -4,6 +4,8 @@ namespace LaravelWhatsApp\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class AccessToken extends Model
 {
@@ -23,12 +25,12 @@ class AccessToken extends Model
         'expires_at' => 'datetime',
     ];
 
-    public function metaApp(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function metaApp(): BelongsTo
     {
         return $this->belongsTo(MetaApp::class, 'meta_app_id', 'id');
     }
 
-    public function businessAccounts(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function businessAccounts(): BelongsToMany
     {
         return $this->belongsToMany(BusinessAccount::class, 'whatsapp_business_tokens', 'access_token_id', 'business_account_id');
     }

@@ -1,10 +1,11 @@
 <?php
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
 use LaravelWhatsApp\Jobs\MarkAsRead;
 use LaravelWhatsApp\Models\WhatsAppMessage;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 describe('MarkAsRead Job', function () {
 
