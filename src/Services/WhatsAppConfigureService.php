@@ -104,20 +104,20 @@ class WhatsAppConfigureService
             ];
         }
 
-        $subscribeAction = $this->whatsAppService::apiPostRequest(
-            access_token: $this->accessToken,
-            uri: "/{$this->wabaId}/subscribed_apps",
-            payload: [
-                'override_callback_uri' => config('whatsapp.subscribe_url'),
-                'verify_token' => $this->verifyToken,
-            ]
-        );
-
         $app = MetaApp::updateOrCreate(
             ['meta_app_id' => $this->appId],
             [
                 'name' => $appData['name'],
                 'app_secret' => $this->appSecret,
+                'verify_token' => $this->verifyToken,
+            ]
+        );
+
+        $subscribeAction = $this->whatsAppService::apiPostRequest(
+            access_token: $this->accessToken,
+            uri: "/{$this->wabaId}/subscribed_apps",
+            payload: [
+                'override_callback_uri' => config('whatsapp.subscribe_url'),
                 'verify_token' => $this->verifyToken,
             ]
         );
