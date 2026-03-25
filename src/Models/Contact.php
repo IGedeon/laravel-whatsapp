@@ -4,6 +4,7 @@ namespace LaravelWhatsApp\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Contact extends Model
 {
@@ -24,8 +25,8 @@ class Contact extends Model
         'last_messages_received_at' => 'datetime',
     ];
 
-    public function apiPhoneNumber()
+    public function apiPhoneNumber(): BelongsTo
     {
-        return $this->belongsTo(config('whatsapp.apiphone_model'), 'api_phone_number_id');
+        return $this->belongsTo(config('whatsapp.apiphone_model'), 'api_phone_id');
     }
 }
