@@ -1,4 +1,9 @@
-![Tests](https://github.com/IGedeon/laravel-whatsapp/actions/workflows/test.yml/badge.svg)
+[![Tests](https://github.com/IGedeon/laravel-whatsapp/actions/workflows/test.yml/badge.svg)](https://github.com/IGedeon/laravel-whatsapp/actions/workflows/test.yml)
+[![Lint](https://github.com/IGedeon/laravel-whatsapp/actions/workflows/lint.yml/badge.svg)](https://github.com/IGedeon/laravel-whatsapp/actions/workflows/lint.yml)
+[![Latest Version](https://img.shields.io/packagist/v/igedeon/laravel-whatsapp)](https://packagist.org/packages/igedeon/laravel-whatsapp)
+[![Total Downloads](https://img.shields.io/packagist/dt/igedeon/laravel-whatsapp)](https://packagist.org/packages/igedeon/laravel-whatsapp)
+[![PHP Version](https://img.shields.io/packagist/dependency-v/igedeon/laravel-whatsapp/php)](https://packagist.org/packages/igedeon/laravel-whatsapp)
+[![License](https://img.shields.io/packagist/l/igedeon/laravel-whatsapp)](https://packagist.org/packages/igedeon/laravel-whatsapp)
 
 # Laravel WhatsApp Cloud API
 
