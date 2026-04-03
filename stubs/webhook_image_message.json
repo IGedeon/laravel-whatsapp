@@ -14,14 +14,16 @@
                         "contacts": [
                             {
                                 "profile": {
-                                "name": "Carlos Trujillo"
+                                    "name": "Carlos Trujillo"
                                 },
-                                "wa_id": "573000000001"
+                                "wa_id": "573000000001",
+                                "user_id": "CO.13491208655302741918"
                             }
                         ],
                         "messages": [
                             {
                                 "from": "573000000001",
+                                "from_user_id": "CO.13491208655302741918",
                                 "id": "wamid.HBgMNTczMDA3ODIwNzYyFQIAEhggQUNDNjFENDhENTY1QTRERjZENTNCNzhDNjdFOTEyRkYA",
                                 "timestamp": "1761686125",
                                 "type": "image",

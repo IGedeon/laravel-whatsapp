@@ -15,6 +15,8 @@ class Contact extends Model
     protected $fillable = [
         'api_phone_id',
         'wa_id',
+        'user_id',
+        'username',
         'name',
         'profile_pic_url',
         'status',

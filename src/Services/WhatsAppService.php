@@ -29,10 +29,17 @@ class WhatsAppService
         $type = strtolower($whatsAppMessage->type->value);
         $data = [
             'messaging_product' => 'whatsapp',
-            'to' => $whatsAppMessage->contact->wa_id,
             'type' => $type,
             $type => $whatsAppMessage->content,
         ];
+
+        // Use phone number when available; fall back to BSUID (user_id) when phone is absent
+        // (e.g. user enabled username feature). From May 2026 the API accepts 'recipient' for BSUIDs.
+        if (! empty($whatsAppMessage->contact->wa_id)) {
+            $data['to'] = $whatsAppMessage->contact->wa_id;
+        } else {
+            $data['recipient'] = $whatsAppMessage->contact->user_id;
+        }
 
         $token = $whatsAppMessage->apiPhoneNumber->businessAccount->latestAccessToken();
 

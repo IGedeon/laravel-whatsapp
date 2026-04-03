@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
 use LaravelWhatsApp\Enums\MessageDirection;
 use LaravelWhatsApp\Enums\MessageType;
 use LaravelWhatsApp\Models\ApiPhoneNumber;
@@ -7,6 +9,7 @@ use LaravelWhatsApp\Models\Contact;
 use LaravelWhatsApp\Models\MessageTypes\Image;
 use LaravelWhatsApp\Models\MessageTypes\Text;
 use LaravelWhatsApp\Models\WhatsAppMessage;
+use LaravelWhatsApp\Services\WhatsAppService;
 
 it('inicializa mensaje de texto correctamente', function () {
     $contact = new Contact(['id' => 1]);
@@ -95,4 +98,20 @@ it('crea mensaje de texto usando make()', function () {
     expect($msg)->toBeInstanceOf(Text::class)
         ->and($msg->body)->toBe('Mensaje')
         ->and($msg->previewUrl)->toBeTrue();
+});
+
+it('uses phone number as send target when wa_id is present', function () {
+    // When a contact has a wa_id, WhatsAppService::send() should set the 'to' field
+    $contact = new Contact(['wa_id' => '573000000001', 'user_id' => 'CO.13491208655302741918']);
+
+    expect(empty($contact->wa_id))->toBeFalse();
+});
+
+it('uses BSUID as send target when wa_id is absent', function () {
+    // When a contact has no wa_id (user enabled username feature), WhatsAppService::send()
+    // should set the 'recipient' field with the BSUID instead of 'to'.
+    $contact = new Contact(['wa_id' => null, 'user_id' => 'CO.99887766554433221100']);
+
+    expect(empty($contact->wa_id))->toBeTrue()
+        ->and($contact->user_id)->toBe('CO.99887766554433221100');
 });

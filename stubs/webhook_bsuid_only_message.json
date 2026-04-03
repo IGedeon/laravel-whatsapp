@@ -14,20 +14,19 @@
             "contacts": [
               {
                 "profile": {
-                  "name": "Carlos Trujillo"
+                  "name": "Carlos Trujillo",
+                  "username": "@carlostrujillo"
                 },
-                "wa_id": "573000000001",
-                "user_id": "CO.13491208655302741918"
+                "user_id": "CO.99887766554433221100"
               }
             ],
             "messages": [
               {
-                "from": "573000000001",
-                "from_user_id": "CO.13491208655302741918",
-                "id": "wamid.HBgMNTczMDA3ODIwNzYyFQIAEhgWM0VCMDBCMDUwMEI5M0E1MjE1RDEyOAA=",
+                "from_user_id": "CO.99887766554433221100",
+                "id": "wamid.HBgMNTczMDA3ODIwNzYyFQIAEhgWBSUID0NLY0FAKEWAMIDBSUIDTEST==",
                 "timestamp": "1761681644",
                 "text": {
-                  "body": "Hola Mundo"
+                  "body": "Hola desde nombre de usuario"
                 },
                 "type": "text"
               }

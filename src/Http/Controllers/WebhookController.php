@@ -50,10 +50,21 @@ class WebhookController extends Controller
             return $message; // Message already exists
         }
 
-        $contact = $contacts->firstWhere('wa_id', $messageData['from']);
+        // from_user_id (BSUID) is always present from 2026-03-31.
+        // 'from' (phone) may be omitted when the user has enabled the username feature.
+        $fromUserId = $messageData['from_user_id'] ?? null;
+        $from = $messageData['from'] ?? null;
+
+        $contact = null;
+        if ($fromUserId) {
+            $contact = $contacts->firstWhere('user_id', $fromUserId);
+        }
+        if (! $contact && $from) {
+            $contact = $contacts->firstWhere('wa_id', $from);
+        }
 
         if (! $contact) {
-            throw new \Exception('Contact not found for wa_id: '.$messageData['from']);
+            throw new \Exception('Contact not found for message from: '.($from ?? $fromUserId));
         }
 
         $message = WhatsAppMessage::create([
@@ -178,15 +189,38 @@ class WebhookController extends Controller
 
                 $contactModel = config('whatsapp.contact_model');
                 foreach ($contacts_ as $contactData) {
-                    $contact = $contactModel::firstOrCreate(
-                        [
-                            'api_phone_id' => $apiPhoneNumber->id,
-                            'wa_id' => $contactData['wa_id'] ?? '',
-                        ],
-                        [
-                            'name' => $contactData['profile']['name'] ?? '',
-                        ],
-                    );
+                    $userId = $contactData['user_id'] ?? null;
+                    $waId = $contactData['wa_id'] ?? null;
+                    $name = $contactData['profile']['name'] ?? null;
+                    $username = $contactData['profile']['username'] ?? null;
+
+                    if ($userId) {
+                        // BSUID is available: use it as primary key (guaranteed unique per portfolio+user)
+                        $contact = $contactModel::firstOrCreate(
+                            ['api_phone_id' => $apiPhoneNumber->id, 'user_id' => $userId],
+                            ['wa_id' => $waId, 'name' => $name, 'username' => $username],
+                        );
+                        // Update phone or username if they became available
+                        $dirty = false;
+                        if ($waId && empty($contact->wa_id)) {
+                            $contact->wa_id = $waId;
+                            $dirty = true;
+                        }
+                        if ($username && $contact->username !== $username) {
+                            $contact->username = $username;
+                            $dirty = true;
+                        }
+                        if ($dirty) {
+                            $contact->save();
+                        }
+                    } else {
+                        // Backward compatibility: identify by phone number
+                        $contact = $contactModel::firstOrCreate(
+                            ['api_phone_id' => $apiPhoneNumber->id, 'wa_id' => $waId ?? ''],
+                            ['name' => $name],
+                        );
+                    }
+
                     $contacts->push($contact);
                 }
 

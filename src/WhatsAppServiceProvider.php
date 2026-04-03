@@ -33,6 +33,10 @@ class WhatsAppServiceProvider extends ServiceProvider
         ], 'whatsapp-migrations');
 
         $this->publishes([
+            __DIR__.'/../resources/boost/guidelines/' => base_path('.ai/guidelines/igedeon/laravel-whatsapp/'),
+        ], 'whatsapp-ai-guidelines');
+
+        $this->publishes([
             __DIR__.'/Config/whatsapp.php' => config_path('whatsapp.php'),
             __DIR__.'/../database/migrations/' => database_path('migrations'),
         ], 'whatsapp');

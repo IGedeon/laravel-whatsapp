@@ -63,9 +63,46 @@ it('can receive a text message via webhook', function () {
     $stored = WhatsAppMessage::where('wa_message_id', 'wamid.HBgMNTczMDA3ODIwNzYyFQIAEhgWM0VCMDBCMDUwMEI5M0E1MjE1RDEyOAA=')->first();
     expect($stored)->not->toBeNull();
     expect($stored->getContentProperty('body'))->toBe('Hola Mundo');
+
+    // Assert BSUID stored on contact
+    $this->assertDatabaseHas('whatsapp_contacts', [
+        'wa_id' => '573000000001',
+        'user_id' => 'CO.13491208655302741918',
+    ]);
+
     Event::assertDispatched(WhatsAppMessageReceived::class, function ($event) use ($stored) {
         return $event->message->id === $stored->id;
     });
+});
+
+it('can receive a message from a bsuid-only contact (username feature enabled)', function () {
+    Event::fake();
+
+    $stubPath = realpath(__DIR__.'/../../stubs/webhook_bsuid_only_message.json');
+    $payload = json_decode(file_get_contents($stubPath), true);
+
+    $this->withoutMiddleware(VerifyMetaSignature::class);
+    $response = $this->postJson('/whatsapp/webhook', $payload);
+    $response->assertStatus(200);
+
+    // Contact stored by user_id (BSUID), no wa_id
+    $this->assertDatabaseHas('whatsapp_contacts', [
+        'user_id' => 'CO.99887766554433221100',
+        'username' => '@carlostrujillo',
+    ]);
+
+    $contact = Contact::where('user_id', 'CO.99887766554433221100')->first();
+    expect($contact)->not->toBeNull();
+    expect($contact->wa_id)->toBeNull();
+
+    // Message stored correctly
+    $this->assertDatabaseHas('whatsapp_messages', [
+        'wa_message_id' => 'wamid.HBgMNTczMDA3ODIwNzYyFQIAEhgWBSUID0NLY0FAKEWAMIDBSUIDTEST==',
+        'type' => 'text',
+        'direction' => 'incoming',
+    ]);
+
+    Event::assertDispatched(WhatsAppMessageReceived::class);
 });
 
 class CustomContactForTest extends Contact
@@ -248,6 +285,31 @@ it('rejects request with invalid signature', function () {
     $response = $this->postJson('/whatsapp/webhook', $payloadArray, $headers);
     $response->assertStatus(401);
     $response->assertSee('Invalid signature');
+});
+
+it('sends outgoing message using recipient field when contact has no phone number', function () {
+    $contact = \LaravelWhatsApp\Models\Contact::factory()->bsuidOnly()->create([
+        'api_phone_id' => $this->phoneNumber->id,
+        'user_id' => 'CO.99887766554433221100',
+    ]);
+
+    Http::fake(['*' => Http::response(['messages' => [['id' => 'wamid.bsuid-response']]], 200)]);
+
+    $msg = \LaravelWhatsApp\Models\MessageTypes\Text::make($contact, 'Hola BSUID', false, $this->phoneNumber);
+    $msg->save();
+
+    $service = new \LaravelWhatsApp\Services\WhatsAppService;
+    $result = $service->send($msg);
+
+    expect($result)->toBeTrue();
+
+    Http::assertSent(function (Request $request) {
+        $body = $request->data();
+
+        return ! isset($body['to'])
+            && isset($body['recipient'])
+            && $body['recipient'] === 'CO.99887766554433221100';
+    });
 });
 
 it('can recieve errors via webhook', function () {
