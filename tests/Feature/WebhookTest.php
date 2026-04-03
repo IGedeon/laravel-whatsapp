@@ -10,6 +10,7 @@ use LaravelWhatsApp\Http\Middleware\VerifyMetaSignature;
 use LaravelWhatsApp\Models\AccessToken;
 use LaravelWhatsApp\Models\ApiPhoneNumber;
 use LaravelWhatsApp\Models\Contact;
+use LaravelWhatsApp\Models\MessageTypes\Text;
 use LaravelWhatsApp\Models\MetaApp;
 use LaravelWhatsApp\Models\WhatsAppMessage;
 use LaravelWhatsApp\Models\WhatsAppMessageError;
@@ -288,17 +289,17 @@ it('rejects request with invalid signature', function () {
 });
 
 it('sends outgoing message using recipient field when contact has no phone number', function () {
-    $contact = \LaravelWhatsApp\Models\Contact::factory()->bsuidOnly()->create([
+    $contact = Contact::factory()->bsuidOnly()->create([
         'api_phone_id' => $this->phoneNumber->id,
         'user_id' => 'CO.99887766554433221100',
     ]);
 
     Http::fake(['*' => Http::response(['messages' => [['id' => 'wamid.bsuid-response']]], 200)]);
 
-    $msg = \LaravelWhatsApp\Models\MessageTypes\Text::make($contact, 'Hola BSUID', false, $this->phoneNumber);
+    $msg = Text::make($contact, 'Hola BSUID', false, $this->phoneNumber);
     $msg->save();
 
-    $service = new \LaravelWhatsApp\Services\WhatsAppService;
+    $service = new WhatsAppService;
     $result = $service->send($msg);
 
     expect($result)->toBeTrue();

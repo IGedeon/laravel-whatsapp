@@ -1,7 +1,5 @@
 <?php
 
-use Illuminate\Http\Client\Request;
-use Illuminate\Support\Facades\Http;
 use LaravelWhatsApp\Enums\MessageDirection;
 use LaravelWhatsApp\Enums\MessageType;
 use LaravelWhatsApp\Models\ApiPhoneNumber;
