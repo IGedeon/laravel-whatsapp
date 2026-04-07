@@ -56,10 +56,23 @@ class Configure extends Command
         if ($configure['success'] !== true) {
             $this->error($configure['message']);
 
+            if (isset($configure['error'])) {
+                $this->line(json_encode($configure['error'], JSON_PRETTY_PRINT));
+            }
+
             return self::FAILURE;
         }
 
         $this->info($configure['message']);
+
+        foreach ($configure['phone_numbers'] ?? [] as $phone) {
+            $status = match ($phone['status']) {
+                'registered' => '<info>registered</info>',
+                'already_connected' => '<comment>already connected</comment>',
+                default => '<error>failed</error>',
+            };
+            $this->line("  {$phone['number']} ({$phone['id']}): {$status}");
+        }
 
         return self::SUCCESS;
     }

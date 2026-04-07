@@ -113,13 +113,42 @@ class WhatsAppConfigureService
             ]
         );
 
+        $appAccessToken = $this->appId.'|'.$this->appSecret;
+
+        $webhookAction = $this->whatsAppService::apiPostRequest(
+            access_token: $appAccessToken,
+            uri: "/{$this->appId}/subscriptions",
+            payload: [
+                'object' => 'whatsapp_business_account',
+                'callback_url' => config('whatsapp.subscribe_url'),
+                'verify_token' => $this->verifyToken,
+                'fields' => 'messages',
+                'include_values' => true,
+            ]
+        );
+
+        if (Arr::get($webhookAction, 'success') !== true) {
+            if ($app->wasRecentlyCreated) {
+                $app->delete();
+            } else {
+                $app->update([
+                    'name' => $app->getOriginal('name'),
+                    'app_secret' => $app->getOriginal('app_secret'),
+                    'verify_token' => $app->getOriginal('verify_token'),
+                ]);
+            }
+
+            return [
+                'success' => false,
+                'message' => 'Failed to configure webhook on the App.',
+                'error' => $webhookAction,
+            ];
+        }
+
         $subscribeAction = $this->whatsAppService::apiPostRequest(
             access_token: $this->accessToken,
             uri: "/{$this->wabaId}/subscribed_apps",
-            payload: [
-                'override_callback_uri' => config('whatsapp.subscribe_url'),
-                'verify_token' => $this->verifyToken,
-            ]
+            payload: []
         );
 
         if (Arr::get($subscribeAction, 'success') !== true) {
@@ -136,6 +165,7 @@ class WhatsAppConfigureService
             return [
                 'success' => false,
                 'message' => 'Failed to subscribe WABA to the App.',
+                'error' => $subscribeAction,
             ];
         }
 
@@ -162,10 +192,45 @@ class WhatsAppConfigureService
 
         $waba->accessTokens()->syncWithoutDetaching([$token->id]);
 
+        $phoneNumbers = Arr::get($wabaData, 'phone_numbers.data', []);
+        $registeredPhones = [];
+
+        foreach ($phoneNumbers as $phone) {
+            $phoneId = Arr::get($phone, 'id');
+
+            if (! $phoneId) {
+                continue;
+            }
+
+            $phoneData = $this->whatsAppService::apiGetRequest(
+                access_token: $this->accessToken,
+                uri: "/{$phoneId}?fields=id,display_phone_number,status"
+            );
+
+            if (Arr::get($phoneData, 'status') === 'CONNECTED') {
+                $registeredPhones[] = ['id' => $phoneId, 'number' => Arr::get($phoneData, 'display_phone_number'), 'status' => 'already_connected'];
+
+                continue;
+            }
+
+            $registerResult = $this->whatsAppService::apiPostRequest(
+                access_token: $this->accessToken,
+                uri: "/{$phoneId}/register",
+                payload: ['messaging_product' => 'whatsapp', 'pin' => '000000']
+            );
+
+            $registeredPhones[] = [
+                'id' => $phoneId,
+                'number' => Arr::get($phoneData, 'display_phone_number'),
+                'status' => Arr::get($registerResult, 'success') ? 'registered' : 'failed',
+            ];
+        }
+
         return [
             'success' => true,
             'message' => 'WABA successfully subscribed to the App.',
             'data' => $fillData,
+            'phone_numbers' => $registeredPhones,
         ];
 
     }
