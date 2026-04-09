@@ -21,7 +21,6 @@ class Contact extends Model
         'profile_pic_url',
         'status',
         'last_messages_received_at',
-        'ai_conversation_id',
     ];
 
     protected $casts = [
