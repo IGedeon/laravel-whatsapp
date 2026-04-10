@@ -244,7 +244,10 @@ Full options in `config/whatsapp.php`:
 // config/whatsapp.php
 'contact_model'  => \App\Models\MyContact::class,
 'apiphone_model' => \App\Models\MyApiPhoneNumber::class,
+'message_model'  => \App\Models\MyWhatsAppMessage::class,
 ```
+
+`message_model` lets you override the base `WhatsAppMessage` model used by internal webhook processing and relationships (for example, in `WhatsAppMessageError`).
 
 ---
 

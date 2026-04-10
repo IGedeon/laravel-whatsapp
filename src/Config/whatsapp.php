@@ -4,6 +4,7 @@ use LaravelWhatsApp\Listeners\HandleWhatsAppMessageReceived;
 use LaravelWhatsApp\Listeners\HandleWhatsAppMessageStatusChange;
 use LaravelWhatsApp\Models\ApiPhoneNumber;
 use LaravelWhatsApp\Models\Contact;
+use LaravelWhatsApp\Models\WhatsAppMessage;
 
 return [
     // Webhook subscribe URL built from APP_URL. Not exposed directly as env var.
@@ -40,4 +41,5 @@ return [
     // Allow overriding the Contact and ApiPhoneNumber model classes
     'contact_model' => Contact::class,
     'apiphone_model' => ApiPhoneNumber::class,
+    'message_model' => WhatsAppMessage::class,
 ];

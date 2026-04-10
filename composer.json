@@ -4,7 +4,8 @@
   "type": "library",
   "license": "MIT",
   "authors": [
-    {"name": "Carlos Trujillo", "email": "ctrujillo@sideso.com.co"}
+    {"name": "Carlos Trujillo", "email": "ctrujillo@sideso.com.co"},
+    {"name": "Sebastian Diaz", "email": "sdiazarrieta0627@gmail.com"}
   ],
   "require": {
     "php": "^8.2",
