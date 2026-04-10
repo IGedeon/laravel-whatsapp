@@ -14,7 +14,6 @@ use LaravelWhatsApp\Jobs\DownloadMedia;
 use LaravelWhatsApp\Jobs\MarkAsRead;
 use LaravelWhatsApp\Models\ApiPhoneNumber;
 use LaravelWhatsApp\Models\MetaApp;
-use LaravelWhatsApp\Models\WhatsAppMessage;
 
 class WebhookController extends Controller
 {
@@ -45,7 +44,9 @@ class WebhookController extends Controller
 
     public static function receiveMessage(ApiPhoneNumber $phoneNumber, array $messageData, Collection $contacts)
     {
-        $message = WhatsAppMessage::where('wa_message_id', $messageData['id'])->first();
+        $messageModel = config('whatsapp.message_model');
+
+        $message = $messageModel::where('wa_message_id', $messageData['id'])->first();
         if ($message) {
             return $message; // Message already exists
         }
@@ -67,7 +68,7 @@ class WebhookController extends Controller
             throw new \Exception('Contact not found for message from: '.($from ?? $fromUserId));
         }
 
-        $message = WhatsAppMessage::create([
+        $message = $messageModel::create([
             'contact_id' => $contact->id,
             'api_phone_number_id' => $phoneNumber->id,
             'direction' => MessageDirection::INCOMING,
@@ -112,8 +113,10 @@ class WebhookController extends Controller
 
     protected static function receiveStatus(ApiPhoneNumber $phoneNumber, array $statuses)
     {
+        $messageModel = config('whatsapp.message_model');
+
         foreach ($statuses as $statusData) {
-            $message = WhatsAppMessage::where('wa_message_id', $statusData['id'])->first();
+            $message = $messageModel::where('wa_message_id', $statusData['id'])->first();
             if (! $message) {
                 continue;
             }

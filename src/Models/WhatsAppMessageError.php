@@ -23,6 +23,6 @@ class WhatsAppMessageError extends Model
 
     public function message()
     {
-        return $this->belongsTo(WhatsAppMessage::class, 'message_id');
+        return $this->belongsTo(config('whatsapp.message_model'), 'message_id');
     }
 }
