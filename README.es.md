@@ -86,20 +86,23 @@ Si ninguna coincide, se rechaza (401) y se registra en logs.
 
 ---
 
-## Extender modelos Contact, ApiPhoneNumber y WhatsAppMessage
+## Extender modelos Contact, ApiPhoneNumber, WhatsAppMessage y MediaElement
 
-Puedes extender los modelos `Contact` y `ApiPhoneNumber` para agregar lógica o atributos personalizados. Define la clase del modelo en el archivo de configuración:
+Puedes extender los modelos `Contact`, `ApiPhoneNumber`, `WhatsAppMessage` y `MediaElement` para agregar lógica o atributos personalizados. Define la clase del modelo en el archivo de configuración:
 
 ```php
 // config/whatsapp.php
 'contact_model' => \App\Models\CustomContact::class,
 'apiphone_model' => \App\Models\CustomApiPhoneNumber::class,
 'message_model' => \App\Models\CustomWhatsAppMessage::class,
+'media_model' => \App\Models\CustomMediaElement::class,
 ```
 
 Estos modelos pueden ser sobrescritos para personalizar relaciones, validaciones o métodos. El paquete usará la clase configurada en todos los procesos internos.
 
 `message_model` permite sobrescribir el modelo base `WhatsAppMessage` que se usa en el procesamiento interno de webhooks y en relaciones (por ejemplo, desde `WhatsAppMessageError`).
+
+`media_model` permite sobrescribir el modelo base `MediaElement` que se usa en relaciones polimórficas de mensajes y en procesos internos de descarga/carga de medios.
 
 Ejemplo de modelo extendido:
 

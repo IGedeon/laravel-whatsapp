@@ -198,7 +198,7 @@ class WhatsAppMessage extends Model
 
     public function media(): MorphOne
     {
-        return $this->morphOne(MediaElement::class, 'mediable');
+        return $this->morphOne(config('whatsapp.media_model'), 'mediable');
     }
 
     // Get Text or Image class based on type

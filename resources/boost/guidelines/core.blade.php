@@ -144,13 +144,15 @@ Incoming media is downloaded asynchronously via the `DownloadMedia` job. Configu
 'expire_media_days'                    => env('WHATSAPP_EXPIRE_MEDIA_DAYS', 15),
 'contact_model'                        => \LaravelWhatsApp\Models\Contact::class,
 'apiphone_model'                       => \LaravelWhatsApp\Models\ApiPhoneNumber::class,
+'message_model'                        => \LaravelWhatsApp\Models\WhatsAppMessage::class,
+'media_model'                          => \LaravelWhatsApp\Models\MediaElement::class,
 ```
 
 ### Best Practices
 
 - Never store Meta credentials in `.env`; use `whatsapp:configure` to persist them in the database.
 - Use the queue for media-heavy workflows (`WHATSAPP_QUEUE_CONNECTION=redis`).
-- Override `contact_model` or `apiphone_model` only when you need to extend the base Eloquent models.
+- Override `contact_model`, `apiphone_model`, `message_model`, or `media_model` only when you need to extend the base Eloquent models.
 - Always check `$message->send()` return value (`bool`) to detect API failures; errors are stored in `WhatsAppMessageError`.
 - For multi-WABA setups, scope contacts by `api_phone_id` to avoid cross-account collisions.
 - Use `user_id` (BSUID) as the primary contact identifier to support users who enable the WhatsApp username feature.

@@ -138,7 +138,7 @@ Key config options in `src/Config/whatsapp.php` (overridable via env):
 | `WHATSAPP_MARK_MESSAGES_AS_READ_IMMEDIATELY` | `false` | Auto-mark incoming as read |
 | `WHATSAPP_EXPIRE_MEDIA_DAYS` | `15` | Media expiration in days |
 
-Models `Contact` and `ApiPhoneNumber` are overridable via config (`contact_model`, `apiphone_model`).
+Models `Contact`, `ApiPhoneNumber`, `WhatsAppMessage`, and `MediaElement` are overridable via config (`contact_model`, `apiphone_model`, `message_model`, `media_model`).
 
 ## Testing
 
