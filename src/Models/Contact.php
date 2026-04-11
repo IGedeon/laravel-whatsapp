@@ -5,6 +5,7 @@ namespace LaravelWhatsApp\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Contact extends Model
 {
@@ -30,5 +31,10 @@ class Contact extends Model
     public function apiPhoneNumber(): BelongsTo
     {
         return $this->belongsTo(config('whatsapp.apiphone_model'), 'api_phone_id');
+    }
+
+    public function messages(): HasMany
+    {
+        return $this->hasMany(config('whatsapp.message_model'), 'contact_id');
     }
 }

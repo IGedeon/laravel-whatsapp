@@ -75,7 +75,10 @@ class WebhookController extends Controller
             'wa_message_id' => $messageData['id'],
             'timestamp' => $messageData['timestamp'],
             'type' => MessageType::from($messageData['type']),
-            'content' => json_encode(Arr::get($messageData, $messageData['type'], [])),
+            'content' => json_encode(
+                Arr::get($messageData, $messageData['type'], []),
+                JSON_UNESCAPED_UNICODE
+            ),
             'status' => MessageStatus::READ,
         ]);
 
