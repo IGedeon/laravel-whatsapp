@@ -83,6 +83,7 @@ class WebhookController extends Controller
         ]);
 
         $contact->last_messages_received_at = $message->timestamp;
+        $contact->last_message_id = $message->id;
         $contact->save();
 
         if ($message->type->isMedia()) {

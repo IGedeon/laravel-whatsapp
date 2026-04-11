@@ -22,6 +22,7 @@ class Contact extends Model
         'profile_pic_url',
         'status',
         'last_messages_received_at',
+        'last_message_id',
     ];
 
     protected $casts = [
@@ -36,5 +37,10 @@ class Contact extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(config('whatsapp.message_model'), 'contact_id');
+    }
+
+    public function lastMessage(): BelongsTo
+    {
+        return $this->belongsTo(config('whatsapp.message_model'), 'last_message_id');
     }
 }
