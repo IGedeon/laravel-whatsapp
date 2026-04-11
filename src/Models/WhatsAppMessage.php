@@ -169,7 +169,7 @@ class WhatsAppMessage extends Model
             $content = json_decode($content, true) ?: [];
         }
         Arr::set($content, $key, $value);
-        $this->attributes['content'] = json_encode($content);
+        $this->attributes['content'] = json_encode($content, JSON_UNESCAPED_UNICODE);
 
         return $this;
     }
