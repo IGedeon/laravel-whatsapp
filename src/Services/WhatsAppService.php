@@ -27,11 +27,16 @@ class WhatsAppService
         $whatsAppMessage = $whatsAppMessage->changeStatus(MessageStatus::SENDING);
 
         $type = strtolower($whatsAppMessage->type->value);
+        
         $data = [
             'messaging_product' => 'whatsapp',
             'type' => $type,
             $type => $whatsAppMessage->content,
         ];
+
+        if (is_array($whatsAppMessage->context) && ! empty($whatsAppMessage->context)) {
+            $data['context'] = $whatsAppMessage->context;
+        }
 
         // Use phone number when available; fall back to BSUID (user_id) when phone is absent
         // (e.g. user enabled username feature). From May 2026 the API accepts 'recipient' for BSUIDs.

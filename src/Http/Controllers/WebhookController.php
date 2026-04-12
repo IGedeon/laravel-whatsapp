@@ -68,12 +68,15 @@ class WebhookController extends Controller
             throw new \Exception('Contact not found for message from: '.($from ?? $fromUserId));
         }
 
-        $content = Arr::get($messageData, $messageData['type'], []);
+        $context = null;
 
         // Agregar contexto si está presente
         // Sirve para mensajes que son respuestas a otros mensajes, o que forman parte de un hilo
         if (Arr::has($messageData, 'context')) {
-            $content['context'] = Arr::get($messageData, 'context', []);
+            $context = json_encode(
+                Arr::get($messageData, 'context', []), 
+                JSON_UNESCAPED_UNICODE
+            );
         }
 
         $message = $messageModel::create([
@@ -83,7 +86,11 @@ class WebhookController extends Controller
             'wa_message_id' => $messageData['id'],
             'timestamp' => $messageData['timestamp'],
             'type' => MessageType::from($messageData['type']),
-            'content' => json_encode($content, JSON_UNESCAPED_UNICODE),
+            'content' => json_encode(
+                Arr::get($messageData, $messageData['type'], []), 
+                JSON_UNESCAPED_UNICODE
+            ),
+            'context' => $context,
             'status' => MessageStatus::READ,
         ]);
 

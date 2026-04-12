@@ -11,14 +11,14 @@ use LaravelWhatsApp\Models\WhatsAppMessage;
 
 class Image extends WhatsAppMessage
 {
-    protected $appends = ['caption', 'waId', 'url'];
+    protected $appends = ['waId', 'url', 'caption', 'text'];
 
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
     }
 
-    public static function createFromUrl(Contact $to, ApiPhoneNumber $from, string $mediaUrl, string $caption = '', bool $previewUrl = false): self
+    public static function createFromUrl(Contact $to, ApiPhoneNumber $from, string $mediaUrl, string $caption = ''): self
     {
         if (trim($mediaUrl) === '') {
             throw new \InvalidArgumentException('media_url cannot be empty');

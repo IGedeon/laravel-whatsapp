@@ -14,7 +14,11 @@ use LaravelWhatsApp\Events\WhatsAppMessageStatusChange;
 use LaravelWhatsApp\Models\MessageTypes\Audio;
 use LaravelWhatsApp\Models\MessageTypes\Document;
 use LaravelWhatsApp\Models\MessageTypes\Image;
+use LaravelWhatsApp\Models\MessageTypes\Location;
+use LaravelWhatsApp\Models\MessageTypes\Reaction;
+use LaravelWhatsApp\Models\MessageTypes\Sticker;
 use LaravelWhatsApp\Models\MessageTypes\Text;
+use LaravelWhatsApp\Models\MessageTypes\Video;
 use LaravelWhatsApp\Services\WhatsAppService;
 
 class WhatsAppMessage extends Model
@@ -84,7 +88,8 @@ class WhatsAppMessage extends Model
         ?MessageDirection $direction = null,
         ?Contact $to = null,
         ?ApiPhoneNumber $from = null,
-        array $contentProps = []
+        array $contentProps = [],
+        array $contextProps = []
     ): void {
         $this->type = $type;
         $this->direction = $direction ?? MessageDirection::OUTGOING;
@@ -92,6 +97,7 @@ class WhatsAppMessage extends Model
         if (! $to) {
             throw new \InvalidArgumentException("Contact 'to' must be provided.");
         }
+        
         $this->contact_id = $to->id;
 
         if (! $from) {
@@ -101,8 +107,14 @@ class WhatsAppMessage extends Model
 
         $this->api_phone_number_id = $from->id;
 
+        $this->timestamp = now();
+
         foreach ($contentProps as $key => $value) {
             $this->setContentProperty($key, $value);
+        }
+
+        foreach ($contextProps as $key => $value) {
+            $this->setContextProperty($key, $value);
         }
     }
 
@@ -149,29 +161,53 @@ class WhatsAppMessage extends Model
         return $this->hasMany(WhatsAppMessageError::class, 'message_id', 'id');
     }
 
-    public function getContentProperty($key)
+    public function getPropertyByColumn($modelColumn, $key)
     {
-        $content = $this->content;
-        if (! $content) {
+        $data = $this->{$modelColumn};
+        
+        if (! $data) {
             return null;
         }
-        if (is_string($content)) {
-            $content = json_decode($content, true);
+
+        if (is_string($data)) {
+            $data = json_decode($data, true);
         }
 
-        return Arr::get($content, $key);
+        return Arr::get($data, $key);
+    }
+
+    public function setPropertyByColumn($modelColumn, $key, $value)
+    {
+        $data = $this->{$modelColumn} ?? [];
+        
+        if (is_string($data)) {
+            $data = json_decode($data, true) ?: [];
+        }
+
+        Arr::set($data, $key, $value);
+        $this->attributes[$modelColumn] = json_encode($data, JSON_UNESCAPED_UNICODE);
+
+        return $this;
+    }
+
+    public function getContentProperty($key)
+    {
+        return $this->getPropertyByColumn('content', $key);
     }
 
     public function setContentProperty($key, $value)
     {
-        $content = $this->content ?? [];
-        if (is_string($content)) {
-            $content = json_decode($content, true) ?: [];
-        }
-        Arr::set($content, $key, $value);
-        $this->attributes['content'] = json_encode($content, JSON_UNESCAPED_UNICODE);
+        return $this->setPropertyByColumn('content', $key, $value);
+    }
 
-        return $this;
+    public function getContextProperty($key)
+    {
+        return $this->getPropertyByColumn('context', $key);
+    }
+
+    public function setContextProperty($key, $value)
+    {
+        return $this->setPropertyByColumn('context', $key, $value);
     }
 
     public function send(): self
@@ -228,7 +264,34 @@ class WhatsAppMessage extends Model
             MessageType::DOCUMENT => Document::createFromId(
                 to: $contactClass::find($this->contact_id),
                 from: $apiPhoneClass::find($this->api_phone_number_id),
+                mediaId: $this->getContentProperty('id') ?? '',
+                caption: $this->getContentProperty('caption') ?? '',
+                filename: $this->getContentProperty('filename') ?? ''
+            ),
+            MessageType::STICKER => Sticker::createFromId(
+                to: $contactClass::find($this->contact_id),
+                from: $apiPhoneClass::find($this->api_phone_number_id),
                 mediaId: $this->getContentProperty('id') ?? ''
+            ),
+            MessageType::VIDEO => Video::createFromId(
+                to: $contactClass::find($this->contact_id),
+                from: $apiPhoneClass::find($this->api_phone_number_id),
+                mediaId: $this->getContentProperty('id') ?? '',
+                caption: $this->getContentProperty('caption') ?? ''
+            ),
+            MessageType::REACTION => Reaction::create(
+                to: $contactClass::find($this->contact_id),
+                from: $apiPhoneClass::find($this->api_phone_number_id),
+                wappMessageId: $this->getContentProperty('message_id') ?? '',
+                emoji: $this->getContentProperty('emoji') ?? ''
+            ),
+            MessageType::LOCATION => Location::create(
+                to: $contactClass::find($this->contact_id),
+                from: $apiPhoneClass::find($this->api_phone_number_id),
+                latitude: $this->getContentProperty('latitude') ?? '',
+                longitude: $this->getContentProperty('longitude') ?? '',
+                name: $this->getContentProperty('name') ?? '',
+                address: $this->getContentProperty('address') ?? ''
             ),
             // Add other message types as needed
             default => throw new \Exception("Unsupported message type: {$this->type}"),

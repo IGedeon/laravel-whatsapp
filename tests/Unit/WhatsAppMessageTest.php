@@ -29,7 +29,7 @@ it('inicializa mensaje de imagen con URL', function () {
     $apiPhone = new ApiPhoneNumber(['id' => 20]);
     $mediaUrl = 'https://example.com/image.jpg';
     $caption = 'Test caption';
-    $msg = Image::createFromUrl($contact, $apiPhone, $mediaUrl, $caption, false);
+    $msg = Image::createFromUrl($contact, $apiPhone, $mediaUrl, $caption);
 
     expect($msg->type)->toBe(MessageType::IMAGE)
         ->and($msg->direction)->toBe(MessageDirection::OUTGOING)
