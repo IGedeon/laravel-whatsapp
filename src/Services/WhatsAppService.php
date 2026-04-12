@@ -27,7 +27,7 @@ class WhatsAppService
         $whatsAppMessage = $whatsAppMessage->changeStatus(MessageStatus::SENDING);
 
         $type = strtolower($whatsAppMessage->type->value);
-        
+
         $data = [
             'messaging_product' => 'whatsapp',
             'type' => $type,

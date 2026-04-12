@@ -74,7 +74,7 @@ class WebhookController extends Controller
         // Sirve para mensajes que son respuestas a otros mensajes, o que forman parte de un hilo
         if (Arr::has($messageData, 'context')) {
             $context = json_encode(
-                Arr::get($messageData, 'context', []), 
+                Arr::get($messageData, 'context', []),
                 JSON_UNESCAPED_UNICODE
             );
         }
@@ -87,7 +87,7 @@ class WebhookController extends Controller
             'timestamp' => $messageData['timestamp'],
             'type' => MessageType::from($messageData['type']),
             'content' => json_encode(
-                Arr::get($messageData, $messageData['type'], []), 
+                Arr::get($messageData, $messageData['type'], []),
                 JSON_UNESCAPED_UNICODE
             ),
             'context' => $context,

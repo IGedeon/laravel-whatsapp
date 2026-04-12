@@ -97,7 +97,7 @@ class WhatsAppMessage extends Model
         if (! $to) {
             throw new \InvalidArgumentException("Contact 'to' must be provided.");
         }
-        
+
         $this->contact_id = $to->id;
 
         if (! $from) {
@@ -164,7 +164,7 @@ class WhatsAppMessage extends Model
     public function getPropertyByColumn($modelColumn, $key)
     {
         $data = $this->{$modelColumn};
-        
+
         if (! $data) {
             return null;
         }
@@ -179,7 +179,7 @@ class WhatsAppMessage extends Model
     public function setPropertyByColumn($modelColumn, $key, $value)
     {
         $data = $this->{$modelColumn} ?? [];
-        
+
         if (is_string($data)) {
             $data = json_decode($data, true) ?: [];
         }
