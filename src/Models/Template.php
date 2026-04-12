@@ -39,8 +39,8 @@ class Template extends Model
     private function replaceParameters(string $text, array $parameters): string
     {
         foreach ($parameters as $index => $parameter) {
-            $placeholder = '{{' . ($index + 1) . '}}';
-            
+            $placeholder = '{{'.($index + 1).'}}';
+
             $value = Arr::get($parameter, 'text', '***N/A***');
 
             $text = str_replace($placeholder, $value, $text);
@@ -95,26 +95,26 @@ class Template extends Model
             throw new \InvalidArgumentException('Message must be of type TEMPLATE to get replacements.');
         }
 
-        if($this->name !== $message->getContentProperty('name')) {
+        if ($this->name !== $message->getContentProperty('name')) {
             throw new \InvalidArgumentException('Template name does not match message content.');
         }
 
-        if($this->language !== $message->getContentProperty('language.code')) {
+        if ($this->language !== $message->getContentProperty('language.code')) {
             throw new \InvalidArgumentException('Template language does not match message content.');
         }
 
         $templateComponents = collect($this->components)
-            ->keyBy(fn($component) => strtolower(trim($component['type'])))
+            ->keyBy(fn ($component) => strtolower(trim($component['type'])))
             ->toArray();
 
         $messageComponents = collect($message->getContentProperty('components'))
-            ->keyBy(fn($component) => strtolower(trim($component['type'])))
+            ->keyBy(fn ($component) => strtolower(trim($component['type'])))
             ->toArray();
 
         return [
             'name' => $this->name,
             'language' => [
-                'code' => $this->language
+                'code' => $this->language,
             ],
             'header' => $this->getHeaderReplacement($templateComponents, $messageComponents),
             'body' => $this->getBodyReplacement($templateComponents, $messageComponents),
