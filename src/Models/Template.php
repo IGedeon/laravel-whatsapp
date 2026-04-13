@@ -41,7 +41,7 @@ class Template extends Model
     private function replaceParameters(string $text, array $parameters): string
     {
         foreach ($parameters as $index => $parameter) {
-            if($this->parameter_format === TemplateParameterFormat::POSITIONAL){
+            if ($this->parameter_format === TemplateParameterFormat::POSITIONAL) {
                 $placeholder = '{{'.($index + 1).'}}';
             } else {
                 $placeholder = '{{'.Arr::get($parameter, 'parameter_name').'}}';
@@ -80,7 +80,7 @@ class Template extends Model
             ];
         }
 
-        if($format === 'document') {
+        if ($format === 'document') {
             return [
                 'type' => 'document',
                 'document' => Arr::get($messageComponents, 'header.0.parameters.0.document'),
@@ -126,7 +126,7 @@ class Template extends Model
             $messageButton = Arr::get($messageButtons, $index);
             $buttonType = strtolower(Arr::get($templateButton, 'type', ''));
 
-            if($buttonType === 'quick_reply') {
+            if ($buttonType === 'quick_reply') {
                 $replacements[] = [
                     'type' => 'quick_reply',
                     'text' => Arr::get($templateButton, 'text'),
@@ -136,11 +136,11 @@ class Template extends Model
                 continue;
             }
 
-            if($buttonType === 'url') {
+            if ($buttonType === 'url') {
                 $url = Arr::get($templateButton, 'url');
                 $isDinamicUrl = str_contains($url, '{{1}}');
 
-                if($isDinamicUrl) {
+                if ($isDinamicUrl) {
                     $url = str_replace('{{1}}', Arr::get($messageButton, 'parameters.0.text', ''), $url);
                 }
 
@@ -149,17 +149,17 @@ class Template extends Model
                     'text' => Arr::get($templateButton, 'text'),
                     'url' => $url,
                 ];
-                
+
                 continue;
             }
 
-            if($buttonType === 'phone_number') {
+            if ($buttonType === 'phone_number') {
                 $replacements[] = [
                     'type' => 'phone_number',
                     'text' => Arr::get($templateButton, 'text'),
                     'phone_number' => Arr::get($templateButton, 'phone_number'),
                 ];
-                
+
                 continue;
             }
 
