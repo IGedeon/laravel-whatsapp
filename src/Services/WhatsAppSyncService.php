@@ -9,14 +9,15 @@ use LaravelWhatsApp\Models\MetaApp;
 class WhatsAppSyncService
 {
     private BusinessAccount $businessAccount;
+
     private WhatsAppConfigureService $whatsAppConfigureService;
 
     public function __construct(
         private readonly string $wabaId,
     ) {
         $this->businessAccount = BusinessAccount::with([
-                'accessTokens'
-            ])
+            'accessTokens',
+        ])
             ->where('whatsapp_id', $this->wabaId)
             ->firstOrFail();
 

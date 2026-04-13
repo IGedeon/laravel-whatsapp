@@ -10,6 +10,7 @@ use LaravelWhatsApp\Models\MetaApp;
 class WhatsAppConfigureService
 {
     private WhatsAppService $whatsAppService;
+
     private string $successMessage = 'WABA successfully subscribed to the App.';
 
     public function __construct(
