@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Arr;
 use LaravelWhatsApp\Enums\MessageType;
+use LaravelWhatsApp\Enums\TemplateParameterFormat;
 
 class Template extends Model
 {
@@ -29,6 +30,7 @@ class Template extends Model
 
     protected $casts = [
         'components' => 'array',
+        'parameter_format' => TemplateParameterFormat::class,
     ];
 
     public function businessAccount(): BelongsTo
@@ -39,7 +41,11 @@ class Template extends Model
     private function replaceParameters(string $text, array $parameters): string
     {
         foreach ($parameters as $index => $parameter) {
-            $placeholder = '{{'.($index + 1).'}}';
+            if($this->parameter_format === TemplateParameterFormat::POSITIONAL){
+                $placeholder = '{{'.($index + 1).'}}';
+            } else {
+                $placeholder = '{{'.Arr::get($parameter, 'parameter_name').'}}';
+            }
 
             $value = Arr::get($parameter, 'text', '***N/A***');
 
@@ -55,11 +61,11 @@ class Template extends Model
             return null;
         }
 
-        $format = strtolower(Arr::get($templateComponents, 'header.format', ''));
+        $format = strtolower(Arr::get($templateComponents, 'header.0.format', ''));
 
         if ($format === 'text') {
-            $headerText = Arr::get($templateComponents, 'header.text', '');
-            $messageParameters = Arr::get($messageComponents, 'header.parameters', []);
+            $headerText = Arr::get($templateComponents, 'header.0.text', '');
+            $messageParameters = Arr::get($messageComponents, 'header.0.parameters', []);
 
             return [
                 'type' => 'text',
@@ -70,7 +76,14 @@ class Template extends Model
         if ($format === 'image') {
             return [
                 'type' => 'image',
-                'image' => Arr::get($messageComponents, 'header.parameters.0.image'),
+                'image' => Arr::get($messageComponents, 'header.0.parameters.0.image'),
+            ];
+        }
+
+        if($format === 'document') {
+            return [
+                'type' => 'document',
+                'document' => Arr::get($messageComponents, 'header.0.parameters.0.document'),
             ];
         }
 
@@ -83,10 +96,77 @@ class Template extends Model
             return '';
         }
 
-        $bodyText = Arr::get($templateComponents, 'body.text', '');
-        $messageParameters = Arr::get($messageComponents, 'body.parameters', []);
+        $bodyText = Arr::get($templateComponents, 'body.0.text', '');
+        $messageParameters = Arr::get($messageComponents, 'body.0.parameters', []);
 
         return $this->replaceParameters($bodyText, $messageParameters);
+    }
+
+    private function getFooterReplacement(array $templateComponents): ?string
+    {
+        if (! isset($templateComponents['footer'])) {
+            return null;
+        }
+
+        return Arr::get($templateComponents, 'footer.0.text', '');
+    }
+
+    private function getButtonsReplacements(array $templateComponents, array $messageComponents): array
+    {
+        if (! isset($templateComponents['buttons']) || ! isset($messageComponents['button'])) {
+            return [];
+        }
+
+        $templateButtons = Arr::get($templateComponents, 'buttons.0.buttons', []);
+        $messageButtons = Arr::get($messageComponents, 'button', []);
+
+        $replacements = [];
+
+        foreach ($templateButtons as $index => $templateButton) {
+            $messageButton = Arr::get($messageButtons, $index);
+            $buttonType = strtolower(Arr::get($templateButton, 'type', ''));
+
+            if($buttonType === 'quick_reply') {
+                $replacements[] = [
+                    'type' => 'quick_reply',
+                    'text' => Arr::get($templateButton, 'text'),
+                    'payload' => Arr::get($messageButton, 'parameters.0.payload'),
+                ];
+
+                continue;
+            }
+
+            if($buttonType === 'url') {
+                $url = Arr::get($templateButton, 'url');
+                $isDinamicUrl = str_contains($url, '{{1}}');
+
+                if($isDinamicUrl) {
+                    $url = str_replace('{{1}}', Arr::get($messageButton, 'parameters.0.text', ''), $url);
+                }
+
+                $replacements[] = [
+                    'type' => 'url',
+                    'text' => Arr::get($templateButton, 'text'),
+                    'url' => $url,
+                ];
+                
+                continue;
+            }
+
+            if($buttonType === 'phone_number') {
+                $replacements[] = [
+                    'type' => 'phone_number',
+                    'text' => Arr::get($templateButton, 'text'),
+                    'phone_number' => Arr::get($templateButton, 'phone_number'),
+                ];
+                
+                continue;
+            }
+
+            throw new \Exception('Unsupported button type: '.$buttonType);
+        }
+
+        return $replacements;
     }
 
     public function getReplacements(WhatsAppMessage $message): array
@@ -104,11 +184,11 @@ class Template extends Model
         }
 
         $templateComponents = collect($this->components)
-            ->keyBy(fn ($component) => strtolower(trim($component['type'])))
+            ->groupBy(fn ($component) => strtolower(trim($component['type'])))
             ->toArray();
 
         $messageComponents = collect($message->getContentProperty('components'))
-            ->keyBy(fn ($component) => strtolower(trim($component['type'])))
+            ->groupBy(fn ($component) => strtolower(trim($component['type'])))
             ->toArray();
 
         return [
@@ -118,6 +198,8 @@ class Template extends Model
             ],
             'header' => $this->getHeaderReplacement($templateComponents, $messageComponents),
             'body' => $this->getBodyReplacement($templateComponents, $messageComponents),
+            'footer' => $this->getFooterReplacement($templateComponents),
+            'buttons' => $this->getButtonsReplacements($templateComponents, $messageComponents),
         ];
     }
 }
