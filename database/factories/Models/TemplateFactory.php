@@ -3,6 +3,7 @@
 namespace Database\Factories\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use LaravelWhatsApp\Enums\TemplateParameterFormat;
 use LaravelWhatsApp\Models\Template;
 
 class TemplateFactory extends Factory
@@ -15,7 +16,7 @@ class TemplateFactory extends Factory
         return [
             'name' => $this->faker->word,
             'message_send_ttl_seconds' => $this->faker->numberBetween(3600, 86400),
-            'parameter_format' => $this->faker->randomElement(['text', 'media']),
+            'parameter_format' => $this->faker->randomElement(TemplateParameterFormat::cases()),
             'components' => [],
             'language' => $this->faker->locale,
             'status' => $this->faker->randomElement(['active', 'inactive']),
