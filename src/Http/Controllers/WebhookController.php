@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use LaravelWhatsApp\Enums\MessageDirection;
 use LaravelWhatsApp\Enums\MessageStatus;
 use LaravelWhatsApp\Enums\MessageType;
@@ -213,31 +214,63 @@ class WebhookController extends Controller
                     $name = $contactData['profile']['name'] ?? null;
                     $username = $contactData['profile']['username'] ?? null;
 
+                    $contact = $contactModel::where('api_phone_id', $apiPhoneNumber->id)
+                        ->where(function ($query) use ($userId, $waId) {
+                            if ($userId) {
+                                $query->orWhere('user_id', $userId);
+                            }
+
+                            if ($waId) {
+                                $query->orWhere('wa_id', $waId);
+                            }
+                        })
+                        ->first();
+
+                    if (! $contact){
+                        $contact = match ($userId != null) {
+                            true => $contactModel::create([
+                                'api_phone_id' => $apiPhoneNumber->id,
+                                'user_id' => $userId,
+                                'wa_id' => $waId,
+                                'name' => $name,
+                                'username' => $username,
+                            ]),
+
+                            false => $contactModel::create([
+                                'api_phone_id' => $apiPhoneNumber->id,
+                                'wa_id' => $waId,
+                                'name' => $name,
+                                'username' => $username,
+                            ]),
+                            
+                            default => null,
+                        };
+                    }
+
                     if ($userId) {
                         // BSUID is available: use it as primary key (guaranteed unique per portfolio+user)
-                        $contact = $contactModel::firstOrCreate(
-                            ['api_phone_id' => $apiPhoneNumber->id, 'user_id' => $userId],
-                            ['wa_id' => $waId, 'name' => $name, 'username' => $username],
-                        );
+    
                         // Update phone or username if they became available
                         $dirty = false;
+
+                        if ($contact->user_id !== $userId) {
+                            $contact->user_id = $userId;
+                            $dirty = true;
+                        }
+                        
                         if ($waId && empty($contact->wa_id)) {
                             $contact->wa_id = $waId;
                             $dirty = true;
                         }
+
                         if ($username && $contact->username !== $username) {
                             $contact->username = $username;
                             $dirty = true;
                         }
+
                         if ($dirty) {
                             $contact->save();
                         }
-                    } else {
-                        // Backward compatibility: identify by phone number
-                        $contact = $contactModel::firstOrCreate(
-                            ['api_phone_id' => $apiPhoneNumber->id, 'wa_id' => $waId ?? ''],
-                            ['name' => $name],
-                        );
                     }
 
                     $contacts->push($contact);

@@ -216,7 +216,9 @@ class WhatsAppMessage extends Model
             throw new \Exception('Only outgoing messages can be sent.');
         }
 
-        $this->save();
+        if (! $this->getKey()){
+            $this->save();
+        }
 
         // Send the message using the WhatsApp API
         $service = new WhatsAppService;
