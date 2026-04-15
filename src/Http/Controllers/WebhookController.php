@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
 use LaravelWhatsApp\Enums\MessageDirection;
 use LaravelWhatsApp\Enums\MessageStatus;
 use LaravelWhatsApp\Enums\MessageType;
@@ -226,7 +225,7 @@ class WebhookController extends Controller
                         })
                         ->first();
 
-                    if (! $contact){
+                    if (! $contact) {
                         $contact = match ($userId != null) {
                             true => $contactModel::create([
                                 'api_phone_id' => $apiPhoneNumber->id,
@@ -242,14 +241,14 @@ class WebhookController extends Controller
                                 'name' => $name,
                                 'username' => $username,
                             ]),
-                            
+
                             default => null,
                         };
                     }
 
                     if ($userId) {
                         // BSUID is available: use it as primary key (guaranteed unique per portfolio+user)
-    
+
                         // Update phone or username if they became available
                         $dirty = false;
 
@@ -257,7 +256,7 @@ class WebhookController extends Controller
                             $contact->user_id = $userId;
                             $dirty = true;
                         }
-                        
+
                         if ($waId && empty($contact->wa_id)) {
                             $contact->wa_id = $waId;
                             $dirty = true;

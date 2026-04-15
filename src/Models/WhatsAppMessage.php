@@ -216,7 +216,7 @@ class WhatsAppMessage extends Model
             throw new \Exception('Only outgoing messages can be sent.');
         }
 
-        if (! $this->getKey()){
+        if (! $this->getKey()) {
             $this->save();
         }
 
