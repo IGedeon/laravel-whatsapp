@@ -23,15 +23,25 @@ enum MessageType: string
     case UNSUPPORTED = 'unsupported';
     case GROUP = 'group';
 
-    public function isSupported(): bool
+    public static function notSupported(bool $returnValues = false): array
     {
-        return match ($this) {
+        $cases = [
             self::ERRORS,
             self::SYSTEM,
             self::UNSUPPORTED,
-            self::GROUP => false,
-            default => true,
-        };
+            self::GROUP,
+        ];
+
+        if ($returnValues) {
+            return array_map(fn($case) => $case->value, $cases);
+        }
+
+        return $cases;
+    }
+
+    public function isSupported(): bool
+    {
+        return !in_array($this->value, self::notSupported(true));
     }
 
     public function isMedia(): bool
