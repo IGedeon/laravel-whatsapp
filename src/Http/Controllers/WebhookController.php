@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use LaravelWhatsApp\Enums\MessageDirection;
 use LaravelWhatsApp\Enums\MessageStatus;
 use LaravelWhatsApp\Enums\MessageType;
@@ -94,9 +95,21 @@ class WebhookController extends Controller
             'status' => MessageStatus::READ,
         ]);
 
-        $contact->last_messages_received_at = $message->timestamp;
-        $contact->last_message_id = $message->id;
-        $contact->save();
+        try {
+            $newTimestamp = $message->timestamp;
+            $currentTimestamp = $contact->last_messages_received_at;
+
+            if (is_null($currentTimestamp) || $newTimestamp->gt($currentTimestamp)) {
+                $contact->last_messages_received_at = $newTimestamp;
+                $contact->last_message_id = $message->id;
+                $contact->save();
+            }
+        } catch (\Throwable $th) {
+            Log::driver(config('whatsapp.log_driver', 'single'))->error('Error updating contact last_messages_received_at: '.$th->getMessage(), [
+                'contact_id' => $contact->id,
+                'message_id' => $message->id,
+            ]);
+        }
 
         if ($message->type->isMedia()) {
             $media = $message->media()->create([
