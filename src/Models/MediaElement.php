@@ -226,7 +226,7 @@ class MediaElement extends Model
         }
 
         $diskName = config('whatsapp.download_disk', 'local');
-        
+
         return Storage::disk($diskName)->temporaryUrl(
             $this->filename,
             now()->addMinutes($expiredMinutes)
