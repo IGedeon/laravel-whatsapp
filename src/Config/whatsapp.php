@@ -39,6 +39,8 @@ return [
     'mark_messages_as_read_immediately' => env('WHATSAPP_MARK_MESSAGES_AS_READ_IMMEDIATELY', false),
     'expire_media_days' => env('WHATSAPP_EXPIRE_MEDIA_DAYS', 15),
 
+    'log_driver' => env('WHATSAPP_LOG_DRIVER', 'single'),
+
     // Allow overriding the Contact, ApiPhoneNumber, Message, and MediaElement model classes
     'contact_model' => Contact::class,
     'apiphone_model' => ApiPhoneNumber::class,

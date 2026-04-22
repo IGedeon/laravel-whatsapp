@@ -157,7 +157,7 @@ class WhatsAppService
         };
 
         if ($response->failed()) {
-            Log::error('WhatsApp API request failed', [
+            Log::driver(config('whatsapp.log_driver', 'single'))->error('WhatsApp API request failed', [
                 'request' => $payload,
                 'status' => $response->status(),
                 'body' => $response->body(),

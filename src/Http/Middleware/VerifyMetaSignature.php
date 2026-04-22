@@ -40,7 +40,7 @@ class VerifyMetaSignature
         }
 
         if (is_null($calc)) {
-            Log::warning('Invalid webhook signature', [
+            Log::driver(config('whatsapp.log_driver', 'single'))->warning('Invalid webhook signature', [
                 'calculated' => $calc,
                 'received' => $received,
             ]);

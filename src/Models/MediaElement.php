@@ -105,7 +105,7 @@ class MediaElement extends Model
                 ->get($this->url);
 
             if (! $downloadResponse->ok()) {
-                Log::warning('WhatsApp Media Download failed', [
+                Log::driver(config('whatsapp.log_driver', 'single'))->warning('WhatsApp Media Download failed', [
                     'status' => $downloadResponse->status(),
                     'media_id' => $this->wa_media_id,
                 ]);
@@ -186,7 +186,8 @@ class MediaElement extends Model
         }
 
         if ($response->failed()) {
-            Log::warning('WhatsApp Media Upload API failed', [
+            Log::driver(config('whatsapp.log_driver', 'single'))->warning('WhatsApp Media Upload API failed', [
+                'id' => $this->id,
                 'status' => $response->status(),
                 'body' => $response->json(),
             ]);
@@ -196,7 +197,8 @@ class MediaElement extends Model
 
         $responseBody = $response->json();
 
-        Log::info('WhatsApp Media Upload API response', [
+        Log::driver(config('whatsapp.log_driver', 'single'))->info('WhatsApp Media Upload API response', [
+            'id' => $this->id,
             'status' => $response->status(),
             'body' => $responseBody,
         ]);
@@ -213,20 +215,33 @@ class MediaElement extends Model
         return $responseBody;
     }
 
+    public function getTemporaryUrl(int $expiredMinutes = 60): ?string
+    {
+        if (! $this->filename) {
+            throw new \Exception('No filename available for media element ID '.$this->id);
+        }
+
+        if (! $this->downloaded_at) {
+            return null;
+        }
+
+        $diskName = config('whatsapp.download_disk', 'local');
+        
+        return Storage::disk($diskName)->temporaryUrl(
+            $this->filename,
+            now()->addMinutes($expiredMinutes)
+        );
+    }
+
     public function getUrl(int $expiredMinutes = 60): string
     {
         $diskName = config('whatsapp.download_disk', 'local');
 
-        $downloadDisk = Storage::disk($diskName);
-
-        if (! $downloadDisk->exists($this->filename)) {
+        if (! Storage::disk($diskName)->exists($this->filename)) {
             $this->download();
         }
 
-        return $downloadDisk->temporaryUrl(
-            $this->filename,
-            now()->addMinutes($expiredMinutes)
-        );
+        return $this->getTemporaryUrl($expiredMinutes);
     }
 
     public function getBase64ContentUrl()

@@ -12,7 +12,7 @@ class HandleWhatsAppMessageStatusChange
 {
     public function handle(WhatsAppMessageStatusChange $event): void
     {
-        Log::info('WhatsAppMessageStatusChange listener', [
+        Log::driver(config('whatsapp.log_driver', 'single'))->info('WhatsAppMessageStatusChange listener', [
             'message_id' => $event->message->id ?? null,
             'wa_message_id' => $event->message->wa_message_id ?? null,
             'old_status' => $event->oldStatus?->value,

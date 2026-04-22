@@ -12,7 +12,7 @@ class HandleWhatsAppMessageReceived
 {
     public function handle(WhatsAppMessageReceived $event): void
     {
-        Log::info('WhatsAppMessageReceived listener', [
+        Log::driver(config('whatsapp.log_driver', 'single'))->info('WhatsAppMessageReceived listener', [
             'message_id' => $event->message->id ?? null,
             'wa_message_id' => $event->message->wa_message_id ?? null,
             'media' => $event->media ? $event->media->filename : null,
