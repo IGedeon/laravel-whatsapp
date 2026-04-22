@@ -33,7 +33,7 @@ enum MessageType: string
         ];
 
         if ($returnValues) {
-            return array_map(fn($case) => $case->value, $cases);
+            return array_map(fn ($case) => $case->value, $cases);
         }
 
         return $cases;
@@ -41,7 +41,7 @@ enum MessageType: string
 
     public function isSupported(): bool
     {
-        return !in_array($this->value, self::notSupported(true));
+        return ! in_array($this->value, self::notSupported(true));
     }
 
     public function isMedia(): bool
