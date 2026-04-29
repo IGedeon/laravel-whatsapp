@@ -21,9 +21,9 @@ class WebhookController extends Controller
     // https://developers.facebook.com/docs/graph-api/webhooks/getting-started#verification-requests
     public function verify(Request $request)
     {
-        $mode = $request->query('hub_mode');
-        $token = $request->query('hub_verify_token');
-        $challenge = $request->query('hub_challenge');
+        $mode = $request->query('hub_mode') ?? $request->query('hub.mode');
+        $token = $request->query('hub_verify_token') ?? $request->query('hub.verify_token');
+        $challenge = $request->query('hub_challenge') ?? $request->query('hub.challenge');
 
         if (empty($mode) || empty($token) || empty($challenge)) {
             return response('Missing parameters', 400);
