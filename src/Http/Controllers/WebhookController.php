@@ -21,16 +21,22 @@ class WebhookController extends Controller
     // https://developers.facebook.com/docs/graph-api/webhooks/getting-started#verification-requests
     public function verify(Request $request)
     {
-        $request->validate([
-            'hub_mode' => 'required|in:subscribe',
-            'hub_verify_token' => 'required',
-            'hub_challenge' => 'required',
-        ]);
+        $mode = $request->query('hub_mode');
+        $token = $request->query('hub_verify_token');
+        $challenge = $request->query('hub_challenge');
 
-        $metaApp = MetaApp::where('verify_token', $request->input('hub_verify_token'))->first();
+        if (empty($mode) || empty($token) || empty($challenge)) {
+            return response('Missing parameters', 400);
+        }
+
+        if ($mode !== 'subscribe') {
+            return response('Invalid hub_mode', 400);
+        }
+
+        $metaApp = MetaApp::where('verify_token', $token)->first();
 
         if ($metaApp) {
-            return response($request->input('hub_challenge'), 200);
+            return response($challenge, 200);
         }
 
         return response('Error validating token', 403);
