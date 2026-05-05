@@ -33,7 +33,7 @@ it('inicializa mensaje de imagen con URL', function () {
 
     expect($msg->type)->toBe(MessageType::IMAGE)
         ->and($msg->direction)->toBe(MessageDirection::OUTGOING)
-        ->and($msg->url)->toBe($mediaUrl)
+        ->and($msg->link)->toBe($mediaUrl)
         ->and($msg->caption)->toBe($caption);
 });
 
