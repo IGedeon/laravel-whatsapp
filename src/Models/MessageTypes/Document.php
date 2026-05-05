@@ -11,7 +11,7 @@ use LaravelWhatsApp\Models\WhatsAppMessage;
 
 class Document extends WhatsAppMessage
 {
-    protected $appends = ['waId', 'url', 'caption', 'filename'];
+    protected $appends = ['waId', 'link', 'caption', 'filename'];
 
     public function __construct(array $attributes = [])
     {
@@ -30,7 +30,7 @@ class Document extends WhatsAppMessage
             $to,
             $from,
             [
-                'url' => $mediaUrl,
+                'link' => $mediaUrl,
                 'caption' => $caption,
                 'filename' => $filename,
             ]
@@ -65,9 +65,9 @@ class Document extends WhatsAppMessage
         return self::makeContentAttribute('id', false);
     }
 
-    protected function url(): Attribute
+    protected function link(): Attribute
     {
-        return self::makeContentAttribute('url', '');
+        return self::makeContentAttribute('link', '');
     }
 
     protected function caption(): Attribute
