@@ -140,14 +140,8 @@ class MediaElement extends Model
         return Carbon::now()->greaterThan($this->expired_at);
     }
 
-    public function upload(string $filePath)
+    public static function uploadFile(string $filePath, string $diskName, string $whatsappToken, string $apiPhoneNumberId)
     {
-        if ($this->wa_media_id && ! $this->isExpired()) {
-            return ['id' => $this->wa_media_id];
-        }
-
-        $diskName = config('whatsapp.download_disk', 'local');
-
         // Verificar que el archivo existe
         if (! Storage::disk($diskName)->exists($filePath)) {
             throw new \InvalidArgumentException("El archivo no existe: $filePath");
@@ -165,9 +159,9 @@ class MediaElement extends Model
 
         file_put_contents($tempPath, $fileContent);
 
-        $url = config('whatsapp.base_url').'/'.config('whatsapp.graph_version').'/'.$this->apiPhoneNumber->whatsapp_id.'/media';
+        $url = config('whatsapp.base_url').'/'.config('whatsapp.graph_version').'/'.$apiPhoneNumberId.'/media';
 
-        $response = Http::withToken($this->getToken())->asMultipart()->post($url, [
+        $response = Http::withToken($whatsappToken)->asMultipart()->post($url, [
             [
                 'name' => 'messaging_product',
                 'contents' => 'whatsapp',
@@ -185,34 +179,64 @@ class MediaElement extends Model
             unlink($tempPath);
         }
 
-        if ($response->failed()) {
-            Log::driver(config('whatsapp.log_driver', 'single'))->warning('WhatsApp Media Upload API failed', [
-                'id' => $this->id,
-                'status' => $response->status(),
-                'body' => $response->json(),
-            ]);
-
-            return $response->json();
-        }
-
         $responseBody = $response->json();
 
-        Log::driver(config('whatsapp.log_driver', 'single'))->info('WhatsApp Media Upload API response', [
-            'id' => $this->id,
-            'status' => $response->status(),
-            'body' => $responseBody,
-        ]);
-
-        // Actualizar el modelo con la información del media subido
-        if (isset($responseBody['id'])) {
-            $this->update([
-                'wa_media_id' => $responseBody['id'],
-                'uploaded_at' => now(),
-                'expired_at' => now()->addDays(config('whatsapp.expire_media_days', 15))->startOfDay(),
+        if ($response->failed()) {
+            Log::driver(config('whatsapp.log_driver', 'single'))->warning('WhatsApp Media Upload API failed', [
+                'api_phone_number_id' => $apiPhoneNumberId,
+                'token' => $whatsappToken,
+                'status' => $response->status(),
+                'body' => $responseBody,
             ]);
+
+            return $responseBody;
         }
 
-        return $responseBody;
+        // Actualizar el modelo con la información del media subido
+        if (! isset($responseBody['id'])) {
+            Log::driver(config('whatsapp.log_driver', 'single'))->warning('WhatsApp Media Upload API response missing media ID', [
+                'api_phone_number_id' => $apiPhoneNumberId,
+                'token' => $whatsappToken,
+                'status' => $response->status(),
+                'body' => $responseBody,
+            ]);
+
+            return [
+                'success' => false,
+                'error' => 'No se recibió un ID de media en la respuesta',
+            ];
+        }
+
+        return [
+            'success' => true,
+            'id' => $responseBody['id'],
+            'uploaded_at' => now(),
+            'expired_at' => now()->addDays(config('whatsapp.expire_media_days', 15))->startOfDay(),
+            'response' => $responseBody,
+        ];
+    }
+
+    public function upload(string $filePath)
+    {
+        if ($this->wa_media_id && ! $this->isExpired()) {
+            return ['id' => $this->wa_media_id];
+        }
+
+        $diskName = config('whatsapp.download_disk', 'local');
+
+        $uploadResult = self::uploadFile($filePath, $diskName, $this->getToken(), $this->apiPhoneNumber->whatsapp_id);
+
+        if (! $uploadResult['success']) {
+            throw new \Exception('Error uploading media: '.$uploadResult['error']);
+        }
+
+        $this->update([
+            'wa_media_id' => $uploadResult['id'],
+            'uploaded_at' => $uploadResult['uploaded_at'],
+            'expired_at' => $uploadResult['expired_at'],
+        ]);
+
+        return $uploadResult['response'];
     }
 
     public function getTemporaryUrl(int $expiredMinutes = 60): ?string
