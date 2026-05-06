@@ -5,7 +5,9 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use LaravelWhatsApp\Enums\MimeType;
+use LaravelWhatsApp\Models\AccessToken;
 use LaravelWhatsApp\Models\ApiPhoneNumber;
+use LaravelWhatsApp\Models\BusinessAccount;
 use LaravelWhatsApp\Models\MediaElement;
 
 beforeEach(function () {
@@ -55,12 +57,22 @@ it('returns early if wa_media_id already exists on upload', function () {
 });
 
 it('throws exception when file does not exist on upload', function () {
-    $apiPhoneNumber = new ApiPhoneNumber(['id' => 1, 'phone_number_id' => '123456789']);
+    $businessAccount = new BusinessAccount(['id' => 1]);
+    $businessAccount->setRelation('accessTokens', collect([
+        new AccessToken(['access_token' => 'test-token', 'created_at' => now()]),
+    ]));
+
+    $apiPhoneNumber = new ApiPhoneNumber([
+        'id' => 1,
+        'business_account_id' => $businessAccount->id,
+        'whatsapp_id' => '123456789',
+    ]);
+    $apiPhoneNumber->setRelation('businessAccount', $businessAccount);
 
     $mediaElement = new MediaElement([
         'api_phone_number_id' => $apiPhoneNumber->id,
     ]);
-    $mediaElement->apiPhoneNumber = $apiPhoneNumber;
+    $mediaElement->setRelation('apiPhoneNumber', $apiPhoneNumber);
 
     Storage::fake('local');
 
